@@ -58,7 +58,8 @@ through the bundled loader on the official `ffs.hdc` gadget
 ├── harmony/                           HarmonyOS compatibility overlay
 │   ├── param/ohos.para                HarmonyOS params (source of truth)
 │   ├── param/ohos.para.dac            HarmonyOS param permissions
-│   ├── prop.default                   generated from ohos.para
+│   ├── prop.default                   generated reference (not installed)
+│   ├── prop-overrides.mk              generated PRODUCT_PROPERTY_OVERRIDES
 │   ├── ohos.recovery.cfg              OHOS-format init reference (unused)
 │   ├── init.recovery.harmony.rc
 │   ├── ueventd.harmony.rc
@@ -71,7 +72,7 @@ through the bundled loader on the official `ffs.hdc` gadget
 │   ├── setup-source.sh                fetch latest official TWRP source
 │   ├── apply-harmony-adaptation.sh    install tree + apply overlay/patches
 │   ├── build.sh                       lunch + mka + wrap ramdisk
-│   ├── para2prop.py                   derive prop.default from ohos.para
+│   ├── para2prop.py                   derive props from ohos.para
 │   ├── bundle-hdc.sh                  extract the hdcd musl runtime
 │   ├── hdc_extract.py                 hdcd + library-closure extraction
 │   └── make-recovery-ramdisk.py       kernel-less header-v0 repack

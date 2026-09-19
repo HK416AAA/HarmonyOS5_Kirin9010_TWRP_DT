@@ -17,7 +17,8 @@ HarmonyOS format, and the Android side is generated from it.
 | `param/ohos.startup.para` | HarmonyOS `.para` | `persist.sys.usb.config=hdc`, boot events |
 | `param/hilog.para` + `.dac` | HarmonyOS `.para` | logging params for the bundled `libhilog.so` |
 | `param/hdc.para` + `.dac` | HarmonyOS `.para` | HDC transport (USB enabled) |
-| `prop.default` | Android props | **Generated** from `ohos.para`, do not edit |
+| `prop.default` | Android props | **Generated** from `ohos.para`; reference only, not installed |
+| `prop-overrides.mk` | make fragment | **Generated**; `device.mk` includes it as `PRODUCT_PROPERTY_OVERRIDES` |
 | `ohos.recovery.cfg` | HarmonyOS init | reference `setparam` jobs; not used by TWRP's init |
 | `init.recovery.harmony.rc` | Android init | mounts/`symlink` that TWRP's init runs |
 | `ueventd.harmony.rc` | Android ueventd | device node rules ported from the stock updater |
@@ -33,16 +34,27 @@ the stock `etc/param/ohos.para.dac` syntax:
 Both files are installed at `recovery/root/etc/param/`, the same path the stock
 OpenHarmony updater uses.
 
-## Why prop.default is generated
+## Why the props are generated
 
 Keeping two hand-written prop files in sync is how device trees rot. Instead:
 
 ```bash
-scripts/para2prop.py harmony/param/ohos.para -o harmony/prop.default
+scripts/para2prop.py harmony/param/ohos.para \
+    -o harmony/prop.default \
+    --mk harmony/prop-overrides.mk
 ```
 
 `scripts/apply-harmony-adaptation.sh` runs this automatically before every
 build, so editing `ohos.para` is enough to change both sides.
+
+`prop.default` is only a human-readable listing. The properties that actually
+reach the image come from `prop-overrides.mk`: the build system generates
+`recovery/root/prop.default` itself (by concatenating the partition
+`build.prop` files), so shipping our own file at that path is a duplicate-rule
+error. Feeding the values through `PRODUCT_PROPERTY_OVERRIDES` puts them into
+`system/build.prop`, which is concatenated into the generated file. Values that
+contain whitespace (the product name, the software version) cannot be expressed
+as a make list word and appear only in `prop.default`.
 
 The translation is not mechanical:
 

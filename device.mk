@@ -6,16 +6,9 @@ LOCAL_PATH := device/huawei/kirin9010
 
 TARGET_BOARD_API_LEVEL := 34
 
-PRODUCT_PROPERTY_OVERRIDES += \
-    ro.hardware=kirin \
-    ro.board.platform=kirin \
-    ro.product.device=kirin9010 \
-    ro.product.board=kirin9010 \
-    ro.product.cpu.abi=arm64-v8a \
-    ro.product.cpu.abilist=arm64-v8a \
-    ro.secure=0 \
-    ro.debuggable=1 \
-    ro.adb.secure=0
+# Android properties (ro.hardware, ro.product.*, ro.secure, ro.ohos.*, ...) are
+# all derived from harmony/param/ohos.para by scripts/para2prop.py and included
+# from harmony/prop-overrides.mk below. ohos.para is the single source of truth.
 
 # Recovery fstab is installed from this tree.
 PRODUCT_COPY_FILES += \
@@ -23,10 +16,13 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/recovery.fstab:recovery/root/etc/recovery.fstab
 
 # HarmonyOS compatibility overlay (props, params, extra init, ueventd).
-# prop.default is generated from harmony/param/ohos.para; the .para/.dac pair
-# is installed at the same path the stock OpenHarmony updater uses (etc/param).
+# The .para/.dac pair is installed at the same path the stock OpenHarmony
+# updater uses (etc/param). The Android properties derived from ohos.para are
+# injected through the generated fragment below, not copied: the build system
+# owns recovery/root/prop.default and a second rule for it is an error.
+-include $(LOCAL_PATH)/harmony/prop-overrides.mk
+
 PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/harmony/prop.default:recovery/root/prop.default \
     $(LOCAL_PATH)/harmony/param/ohos.para:recovery/root/etc/param/ohos.para \
     $(LOCAL_PATH)/harmony/param/ohos.para.dac:recovery/root/etc/param/ohos.para.dac \
     $(LOCAL_PATH)/harmony/param/ohos.startup.para:recovery/root/etc/param/ohos.startup.para \

@@ -47,13 +47,17 @@ else
 fi
 echo ">>> device tree at ${DEVICE_DIR}"
 
-# 2. Regenerate prop.default from the HarmonyOS .para source of truth so the
-#    Android side can never drift from the .para side.
+# 2. Regenerate the Android properties from the HarmonyOS .para source of truth
+#    so the two sides can never drift. `prop.default` is a human-readable
+#    reference; `prop-overrides.mk` is what device.mk actually feeds into the
+#    build (the build system owns recovery/root/prop.default and would reject a
+#    second rule for it).
 if [ -f "${HERE}/harmony/param/ohos.para" ]; then
-    echo ">>> deriving prop.default from harmony/param/ohos.para"
+    echo ">>> deriving prop.default + prop-overrides.mk from harmony/param/ohos.para"
     python3 "${HERE}/scripts/para2prop.py" \
         "${HERE}/harmony/param/ohos.para" \
-        -o "${HERE}/harmony/prop.default"
+        -o "${HERE}/harmony/prop.default" \
+        --mk "${HERE}/harmony/prop-overrides.mk"
 fi
 
 # 3. Bundle the hdcd (musl) runtime when a stock image is provided. Optional:
@@ -74,6 +78,7 @@ REQUIRED=(
     "twrp.fstab"
     "recovery.fstab"
     "harmony/prop.default"
+    "harmony/prop-overrides.mk"
     "harmony/param/ohos.para"
     "harmony/param/ohos.para.dac"
     "harmony/param/ohos.startup.para"
@@ -112,7 +117,7 @@ cat <<'EOF'
       - boot header geometry : v0, kernel_size=0, ramdisk@0x100000
       - fstab                : HarmonyOS by-name partition names
       - harmony params       : param/ohos.para (+ .dac) as source of truth
-      - compat overlay       : prop.default (derived) + init.recovery.harmony.rc
+      - compat overlay       : prop-overrides.mk (derived) + init.recovery.harmony.rc
       - HDC (Device Connector): ffs.hdc gadget + hdcd musl runtime (/ohos-hdc)
       - crypto               : disabled (Huawei FBE unsupported)
       - post-build           : scripts/make-recovery-ramdisk.py
