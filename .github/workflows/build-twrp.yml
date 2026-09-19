@@ -31,7 +31,9 @@ permissions:
   contents: write
 
 concurrency:
-  group: twrp-${{ github.ref }}
+  # Include the requested branch set so a manual multi-branch dispatch does not
+  # queue behind an unrelated push build for the same ref.
+  group: twrp-${{ github.ref }}-${{ github.event.inputs.branches || 'default' }}
   cancel-in-progress: false
 
 jobs:
