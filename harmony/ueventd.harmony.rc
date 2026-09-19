@@ -1,14 +1,20 @@
 # ueventd.harmony.rc
 #
-# HarmonyOS devices expose block storage over UFS (fa500000.ufs) and MMC.
-# ueventd must create the standard /dev/block/by-name symlinks that the fstab
-# and the rest of recovery rely on. The stock OHOS ueventd.config uses the same
-# by-name scheme, so only the platform drivers differ.
+# HarmonyOS Kirin 9010 block storage is UFS on the fa500000.ufs host; the
+# official fstab references /dev/block/platform/fa500000.ufs/by-name/*.
+# ueventd must create those platform/by-name symlinks (and the plain
+# /dev/block/by-name/* aliases) before the fstab is processed.
 
 # Block devices
-/dev/block/sd*               0660   root   system
-/dev/block/mmcblk*           0660   root   system
-/dev/block/vd*               0660   root   system
+/dev/block/sd*                              0660   root   system
+/dev/block/mmcblk*                          0660   root   system
+/dev/block/vd*                              0660   root   system
+/dev/block/nve*                             0660   root   system
+/dev/block/zram*                            0660   root   system
+/dev/block/hvgr*                            0666   system graphics
 
-# UFS host controller
-/dev/block/platform/*/by-name/*  0660   root   system
+# UFS host controller (HarmonyOS path used by the official fstab)
+/dev/block/platform/fa500000.ufs/by-name/*  0660   root   system
+
+# Generic platform alias for other SoCs in the family
+/dev/block/platform/*/by-name/*             0660   root   system

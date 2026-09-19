@@ -54,6 +54,8 @@ HarmonyOS-specific work is a boundary adaptation, not a rewrite of TWRP:
 │   ├── apply-harmony-adaptation.sh    install tree + apply overlay/patches
 │   ├── build.sh                       lunch + mka + wrap ramdisk
 │   └── make-recovery-ramdisk.py       kernel-less header-v0 repack
+├── reference/                         official Kirin 9010 configs (fstab/init)
+├── patches/                           optional core patches (empty)
 ├── prebuilt/                          optional per-model overrides (empty)
 └── extract-files.sh                   dump/validate partitions on device
 ```
@@ -96,22 +98,35 @@ fastboot reboot recovery
 The stock `kernel` partition stays untouched, so the device boots with its own
 kernel and DTB.
 
+## HarmonyOS device layout
+
+The fstabs are derived from the official `reference/fstab.Kirin9010`. Storage
+is UFS on `fa500000.ufs`, so by-name paths are
+`/dev/block/platform/fa500000.ufs/by-name/<name>`. HarmonyOS mounts the
+`system` partition at `/usr` (TWRP uses `/system`), product partitions
+`sys_prod`/`chip_prod`/`cust`/`version`/`preload`/`patch` are erofs with ext4
+fallback, and `userdata` is **hmfs** with Huawei fscrypt. See
+[reference/README.md](reference/README.md) for the full table.
+
 ## Verify the partition map first
 
-The fstab partition names come from the stock updater plus the known HarmonyOS
-partition set. Confirm them on your model before flashing:
+Confirm the on-device layout matches the reference before flashing:
 
 ```bash
-adb shell su -c 'ls -l /dev/block/by-name'
+adb shell su -c 'ls -l /dev/block/platform/fa500000.ufs/by-name'
 ```
 
 Then reconcile `twrp.fstab`. `extract-files.sh` captures this automatically.
 
 ## Known limitations
 
-- **Data decryption**: stock `userdata` uses Huawei FBE
-  (`aes-256-xts:aes-256-cts`); stock TWRP crypto cannot open it yet.
-- **Partition names**: must be validated on each model.
+- **Data decryption**: `userdata` is **hmfs** with Huawei FBE
+  (`fscrypt=1:aes-256-cts:aes-256-xts`). Stock TWRP cannot mount or decrypt it
+  without hmfs + Huawei FBE support.
+- **erofs**: `system`/`vendor`/product partitions are erofs; TWRP needs erofs
+  support to read them (`TW_INCLUDE_EROFS`).
+- **Partition names**: must be validated on each model; the storage host string
+  (`fa500000.ufs`) can differ.
 - **Kernel config**: the stock kernel must provide `DEVTMPFS`,
   `BLK_DEV_INITRD`, framebuffer/DRM and input drivers.
 - **First boot**: set `TW_SCREEN_BLANK_ON_BOOT := false` to see kernel logs.

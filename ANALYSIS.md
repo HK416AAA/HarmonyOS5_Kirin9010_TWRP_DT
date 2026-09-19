@@ -92,6 +92,12 @@ Key facts: `userdata` is **F2FS** with `fileencryption=aes-256-xts:aes-256-cts`
 and a 20 MiB reserved size; `cache`/`splash2` are ext4; external storage is
 vfat on `mmcblk1`/`sde1`.
 
+> Note: this is the **updater's** mount table. The actual device mount table
+> (`reference/fstab.Kirin9010`) differs: storage is UFS on `fa500000.ufs`,
+> `system` mounts at `/usr`, product partitions are erofs, and `userdata` is
+> **hmfs** with `fscrypt=1:aes-256-cts:aes-256-xts`. The device tree uses the
+> real table; see `reference/README.md`.
+
 ## 4. Partition references discovered
 
 Runtime references found by scanning both CPIO payloads for

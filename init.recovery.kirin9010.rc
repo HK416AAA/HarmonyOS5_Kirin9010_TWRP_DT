@@ -1,30 +1,43 @@
-# init.recovery.kirin9010.rc - recovery init extensions for HarmonyOS Kirin 9010.
+# init.recovery.kirin9010.rc - recovery init for HarmonyOS Kirin 9010.
 #
-# HarmonyOS split-boot: the kernel comes from the stock `kernel` partition and
-# the ramdisk from `recovery_ramdisk`. Recovery must create the mount points
-# and by-name-backed paths before fstab is processed.
+# Based on the official device configs (init.Kirin9010.cfg, fstab.Kirin9010).
+# HarmonyOS mounts the `system` partition at /usr and exposes extra product
+# partitions; recovery must create those mount points before fstab is read.
 
 on early-init
+    # Matches init.Kirin9010.cfg pre-init PATH.
+    export PATH /usr/local/bin:/bin:/usr/bin:/system/bin:/vendor/bin
+    mkdir /usr 0755 root root
+    mkdir /system 0755 root root
+    mkdir /vendor 0755 root root
+    mkdir /sys_prod 0755 root root
+    mkdir /chip_prod 0755 root root
+    mkdir /cust 0755 root root
+    mkdir /version 0755 root root
+    mkdir /preload 0755 root root
+    mkdir /patch_hw 0755 root root
+    mkdir /log 0755 root root
+    mkdir /misc 0755 root root
     mkdir /bootctrl 0755 system system
-    mkdir /metadata 0755 system system
-    mkdir /splash2 0755 system system
-    mkdir /kernel 0755 system system
-    mkdir /recovery_vendor 0755 system system
+    mkdir /kernel 0755 root root
+    mkdir /recovery_vendor 0755 root root
+    mkdir /vendor/modem 0755 root root
 
 on init
-    # Mirror the stock OHOS layout where /system/bin is /bin.
+    # HarmonyOS exposes /system/bin as /bin.
     symlink /system/bin /bin
     mkdir /tmp 0777 system system
     mount tmpfs tmpfs /tmp mode=0755
+    chown system system /tmp
 
 on fs
     mount_all /system/etc/recovery.fstab --early
 
 on post-fs-data
+    mkdir /data/lost+found 0770 root root
+    mkdir /data/hisi_logs 0770 root system
     mkdir /data/media 0770 media_rw media_rw
     mkdir /data/media/0 0770 media_rw media_rw
 
-# HarmonyOS parameter service ships its config as .para files, not Android
-# properties. Nothing to import here, but keep the service hook point.
-on property:vold.decrypt=trigger_restart_framework
-    start recovery
+on late-fs
+    mount debugfs debugfs /sys/kernel/debug

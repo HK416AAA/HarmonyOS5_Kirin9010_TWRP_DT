@@ -2,9 +2,9 @@
 # prop.default - HarmonyOS compatibility properties for TWRP recovery.
 #
 # HarmonyOS stores build parameters as .para files, not Android properties.
-# TWRP's recovery init still reads prop.default/default.prop, so this file
-# provides the minimum set it expects and mirrors the device identity taken
-# from the stock etc/param/ohos.para.
+# TWRP's recovery init still reads prop.default/default.prop, so this provides
+# the minimum set it expects. Device facts come from the official configs
+# (fstab.Kirin9010, init.Kirin9010.cfg, init.Kirin9010.usb.cfg).
 
 ro.hardware=kirin
 ro.board.platform=kirin
@@ -26,6 +26,12 @@ ro.recovery.mode=1
 ro.twrp.version=twrp-14.1
 ro.sf.lcd_density=320
 
-# HarmonyOS identity carried over from the stock updater image
+# HarmonyOS storage / USB identity
+ro.boot.ufs=fa500000.ufs
+ro.usb.controller=efc00000.dwc3
+ro.usb.vid=0x12D1
+ro.usb.pid=0x5000
+
+# HarmonyOS path layout
 ro.ohos.devicetype=pad
 ro.ohos.software.version=OpenHarmony 5.0.5.165

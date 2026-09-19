@@ -1,20 +1,25 @@
 # init.recovery.harmony.rc
 #
-# HarmonyOS-specific recovery init hooks.
+# HarmonyOS-specific recovery init hooks, derived from the official
+# init.Kirin9010.cfg and fstab.Kirin9010.
 #
-# The stock OHOS updater ramdisk (etc/updater_common.cfg) does:
-#   pre-init : symlink /system/bin -> /bin
-#   init     : mkdir /system /vendor /tmp /data /param ; mount tmpfs /tmp
-#   post-init: trigger post-fs-data ; mkdir /sdcard ; start updater
+# HarmonyOS conventions replicated here:
+#   * PATH includes /usr/local/bin:/bin:/usr/bin:/system/bin:/vendor/bin
+#   * the `system` partition mounts at /usr
+#   * /system/bin is exposed as /bin
+#   * extra product partitions: sys_prod, chip_prod, cust, version, preload, patch_hw
+#   * /data/vendor/hyperhold is a symlink to /data/service/el1/0/hyperhold
 #
-# TWRP provides its own userspace, so the `updater` service is not started.
-# The mount points and the /bin symlink are replicated so that any stock kernel
-# module or firmware path that expects the OHOS layout still resolves.
+# TWRP provides its own userspace, so no HarmonyOS services are started.
 
 on early-init
-    mkdir /param 0755 system system
-    mkdir /system 0755 root root
-    mkdir /vendor 0755 root root
+    export PATH /usr/local/bin:/bin:/usr/bin:/system/bin:/vendor/bin
+    mkdir /usr 0755 root root
+    mkdir /sys_prod 0755 root root
+    mkdir /chip_prod 0755 root root
+    mkdir /version 0755 root root
+    mkdir /preload 0755 root root
+    mkdir /patch_hw 0755 root root
 
 on init
     symlink /system/bin /bin
@@ -23,4 +28,11 @@ on init
     chown system system /tmp
 
 on post-fs-data
+    mkdir /data/lost+found 0770 root root
+    mkdir /data/hisi_logs 0770 root system
+    mkdir /data/service/el1/0/hyperhold 0600 root root
+    symlink /data/service/el1/0/hyperhold /data/vendor/hyperhold
     mkdir /sdcard 0777 root root
+
+on late-fs
+    mount debugfs debugfs /sys/kernel/debug

@@ -1,46 +1,64 @@
 #
-# Fstab for TWRP on HarmonyOS 5 / Kirin 9010 tablets.
+# TWRP fstab for HarmonyOS 5 / Kirin 9010 tablets.
 #
-# Base data from the stock updater mount table (etc/fstab.updater):
-#   /misc emmc, /cache ext4, /data f2fs, /splash2 ext4, external vfat.
-# system/vendor/product/cust/metadata entries are inferred from the HarmonyOS
-# partition set and must be validated against the real GPT:
-#   adb shell su -c 'ls -l /dev/block/by-name'
+# Source data: the official device configs
+#   fstab.Kirin9010       (this repository's reference mount table)
+#   init.Kirin9010.cfg    (jobs: PATH=/usr/local/bin:/bin:/usr/bin:/system/bin:/vendor/bin)
+#
+# HarmonyOS differences from Android that this fstab encodes:
+#   * by-name lives under /dev/block/platform/fa500000.ufs/, not /dev/block/
+#   * the `system` partition mounts at /usr in HarmonyOS; TWRP mounts it at
+#     /system because its UI and scripts require that path
+#   * `userdata` is hmfs (Huawei), not ext4/f2fs
+#   * extra product partitions: sys_prod, chip_prod, version, preload, patch_hw
 #
 # Format: <src> <mnt_point> <type> <mnt_flags> <fs_mgr_flags>
 #
 
 # --- Boot / control ---
-/dev/block/by-name/misc              /misc        emmc    defaults          defaults
-/dev/block/by-name/splash2           /splash2     ext4    defaults          defaults
-/dev/block/by-name/bootctrl          /bootctrl    emmc    defaults          nofail
-/dev/block/by-name/metadata          /metadata    ext4    defaults          nofail
+/dev/block/platform/fa500000.ufs/by-name/misc               /misc       emmc    defaults               defaults
+/dev/block/platform/fa500000.ufs/by-name/bootctrl           /bootctrl   emmc    defaults               nofail
+/dev/block/platform/fa500000.ufs/by-name/splash2            /splash2    ext4    defaults               nofail
 
-# --- System partitions (validate names against real GPT) ---
-/dev/block/by-name/system            /system      ext4    ro                wait
-/dev/block/by-name/vendor            /vendor      ext4    ro                wait
-/dev/block/by-name/product           /product     ext4    ro                nofail
-/dev/block/by-name/cust              /cust        ext4    ro                nofail
-/dev/block/by-name/preload           /preload     ext4    ro                nofail
+# --- System / product partitions ---
+# HarmonyOS mounts `system` at /usr; TWRP uses /system.
+/dev/block/platform/fa500000.ufs/by-name/system             /system     erofs   ro                     wait
+/dev/block/platform/fa500000.ufs/by-name/system             /system     ext4    ro                     wait
+/dev/block/platform/fa500000.ufs/by-name/vendor             /vendor     erofs   ro                     wait
+/dev/block/platform/fa500000.ufs/by-name/vendor             /vendor     ext4    ro                     wait
+/dev/block/platform/fa500000.ufs/by-name/sys_prod           /sys_prod   erofs   ro                     nofail
+/dev/block/platform/fa500000.ufs/by-name/sys_prod           /sys_prod   ext4    ro                     nofail
+/dev/block/platform/fa500000.ufs/by-name/chip_prod          /chip_prod  erofs   ro                     nofail
+/dev/block/platform/fa500000.ufs/by-name/chip_prod          /chip_prod  ext4    ro                     nofail
+/dev/block/platform/fa500000.ufs/by-name/cust               /cust       erofs   ro                     nofail
+/dev/block/platform/fa500000.ufs/by-name/cust               /cust       ext4    ro                     nofail
+/dev/block/platform/fa500000.ufs/by-name/version            /version    erofs   ro                     nofail
+/dev/block/platform/fa500000.ufs/by-name/version            /version    ext4    ro                     nofail
+/dev/block/platform/fa500000.ufs/by-name/preload            /preload    erofs   ro                     nofail
+/dev/block/platform/fa500000.ufs/by-name/preload            /preload    ext4    ro                     nofail
+/dev/block/platform/fa500000.ufs/by-name/patch              /patch_hw   erofs   ro                     nofail
+/dev/block/platform/fa500000.ufs/by-name/patch              /patch_hw   ext4    ro                     nofail
 
-# --- Data / cache ---
-# Stock userdata is f2fs with aes-256-xts:aes-256-cts FBE; recovery mounts it
-# unencrypted, so no fileencryption flag here.
-/dev/block/by-name/userdata          /data        f2fs    defaults          wait,check
-/dev/block/by-name/cache             /cache       ext4    defaults          wait
+# --- Modem (HarmonyOS nests these under /vendor/modem) ---
+/dev/block/platform/fa500000.ufs/by-name/modem_vendor       /vendor/modem/modem_vendor ext4 ro        nofail
+/dev/block/platform/fa500000.ufs/by-name/modem_driver       /vendor/modem/modem_driver ext4 ro        nofail
+
+# --- Data / log / cache ---
+# userdata is hmfs with Huawei fscrypt. The stock mount options are:
+#   noatime,nosuid,nodev,usrquota,grpquota,prjquota,reserve_root=32768,
+#   resgid=1065,fscrypt=1:aes-256-cts:aes-256-xts
+# TWRP uses plain options here; hmfs must be supported by the kernel and by
+# TWRP's mount path.
+/dev/block/platform/fa500000.ufs/by-name/userdata           /data       hmfs    noatime,nosuid,nodev    wait
+/dev/block/platform/fa500000.ufs/by-name/log                /log        ext4    rw,nosuid,nodev,noatime wait
 
 # --- Boot images (raw emmc, for backup/restore) ---
-/dev/block/by-name/kernel            /kernel      emmc    defaults          nofail
-/dev/block/by-name/boot_ramdisk      /boot        emmc    defaults          nofail
-/dev/block/by-name/recovery_ramdisk  /recovery    emmc    defaults          nofail
-/dev/block/by-name/recovery_vendor   /recovery_vendor emmc defaults           nofail
+/dev/block/platform/fa500000.ufs/by-name/kernel             /kernel     emmc    defaults               nofail
+/dev/block/platform/fa500000.ufs/by-name/boot_ramdisk       /boot       emmc    defaults               nofail
+/dev/block/platform/fa500000.ufs/by-name/recovery_ramdisk   /recovery   emmc    defaults               nofail
+/dev/block/platform/fa500000.ufs/by-name/recovery_vendor    /recovery_vendor emmc defaults            nofail
 
 # --- Removable / external storage ---
-/dev/block/mmcblk1p1                 /external_sd vfat    defaults          nofail
-/dev/block/mmcblk1                   /usb_otg     vfat    defaults          nofail
-/dev/block/sde1                      /usb_otg     vfat    defaults          nofail
-
-# --- Firmware / radio (read-only backup targets) ---
-/dev/block/by-name/modem_fw          /modem_fw    emmc    defaults          nofail
-/dev/block/by-name/modem_secure      /modem_secure emmc   defaults          nofail
-/dev/block/by-name/oeminfo           /oeminfo     emmc    defaults          nofail
+/dev/block/mmcblk1p1                                        /external_sd vfat   defaults              nofail
+/dev/block/mmcblk1                                          /usb_otg    vfat    defaults              nofail
+/dev/block/sde1                                             /usb_otg    vfat    defaults              nofail

@@ -17,6 +17,8 @@ DEVICE_DIR="${1:-device/huawei/kirin9010}"
 WITH_KERNEL="${2:-}"
 PREBUILT="${DEVICE_DIR}/prebuilt"
 VENDOR_OUT="${DEVICE_DIR}/vendor_blobs"
+# HarmonyOS exposes by-name under the UFS host path (see reference/fstab.Kirin9010).
+BYNAME="${BYNAME:-/dev/block/platform/fa500000.ufs/by-name}"
 
 mkdir -p "${PREBUILT}" "${VENDOR_OUT}"
 
@@ -26,10 +28,21 @@ adb_root() {
     adb shell su -c "$1"
 }
 
+# Fall back to the plain by-name alias if the platform path is absent.
+detect_byname() {
+    if adb shell su -c "test -d ${BYNAME}" >/dev/null 2>&1; then
+        echo "${BYNAME}"
+    else
+        echo "/dev/block/by-name"
+    fi
+}
+
 pull_partition() {
     local name="$1" out="$2"
-    echo ">>> dumping ${name}"
-    adb_root "dd if=/dev/block/by-name/${name} of=/data/local/tmp/${name}.img" || {
+    local base
+    base="$(detect_byname)"
+    echo ">>> dumping ${name} from ${base}"
+    adb_root "dd if=${base}/${name} of=/data/local/tmp/${name}.img" || {
         echo "!!! failed to dump ${name}"
         return 1
     }
@@ -38,7 +51,9 @@ pull_partition() {
 }
 
 # Capture the partition map: this is what twrp.fstab must match.
-adb shell su -c "ls -l /dev/block/by-name" | tee "${DEVICE_DIR}/partitions.txt"
+BASE="$(detect_byname)"
+echo ">>> partition map from ${BASE}"
+adb shell su -c "ls -l ${BASE}" | tee "${DEVICE_DIR}/partitions.txt"
 adb shell su -c "cat /proc/partitions"     | tee -a "${DEVICE_DIR}/partitions.txt"
 
 # Reference ramdisks (optional, for diffing against the stock layout).

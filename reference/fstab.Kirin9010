@@ -1,0 +1,23 @@
+# fstab file.
+# <src>                                                  <mnt_point> <type>   <mnt_flags and options>  <fs_mgr_flags>
+/dev/block/platform/fa500000.ufs/by-name/system         /usr        erofs    ro  wait,required,hvb,nofail
+/dev/block/platform/fa500000.ufs/by-name/system         /usr        ext4     ro,barrier=1  wait,required,hvb,nofail
+/dev/block/platform/fa500000.ufs/by-name/vendor         /vendor     erofs    ro  wait,required,hvb,nofail
+/dev/block/platform/fa500000.ufs/by-name/vendor         /vendor     ext4     ro,barrier=1  wait,required,hvb,nofail
+/dev/block/platform/fa500000.ufs/by-name/sys_prod       /sys_prod   erofs    ro  wait,required,hvb
+/dev/block/platform/fa500000.ufs/by-name/sys_prod       /sys_prod   ext4     ro,barrier=1  wait,required,hvb
+/dev/block/platform/fa500000.ufs/by-name/chip_prod      /chip_prod  erofs    ro  wait,required,hvb,nofail
+/dev/block/platform/fa500000.ufs/by-name/chip_prod      /chip_prod  ext4     ro,barrier=1  wait,required,hvb,nofail
+/dev/block/platform/fa500000.ufs/by-name/cust           /cust       erofs    ro  wait,required,hvb
+/dev/block/platform/fa500000.ufs/by-name/cust           /cust       ext4     ro,barrier=1  wait,required,hvb
+/dev/block/platform/fa500000.ufs/by-name/version        /version    erofs    ro  wait,required,hvb
+/dev/block/platform/fa500000.ufs/by-name/version        /version    ext4     ro,barrier=1  wait,required,hvb
+/dev/block/platform/fa500000.ufs/by-name/preload        /preload    erofs    ro  wait,required,hvb
+/dev/block/platform/fa500000.ufs/by-name/preload        /preload    ext4     ro,barrier=1  wait,required,hvb
+/dev/block/platform/fa500000.ufs/by-name/patch          /patch_hw   erofs    ro  wait,required,hvb
+/dev/block/platform/fa500000.ufs/by-name/patch          /patch_hw   ext4     ro,barrier=1  wait,required,hvb
+/dev/block/platform/fa500000.ufs/by-name/log            /log        ext4     rw,nosuid,nodev,noatime,barrier=1  wait
+/dev/block/platform/fa500000.ufs/by-name/userdata       /data       hmfs     noatime,nosuid,nodev,usrquota,grpquota,prjquota,reserve_root=32768,resgid=1065,fscrypt=1:aes-256-cts:aes-256-xts  wait,fscompression,fsdedup,fscasefold
+/dev/block/platform/fa500000.ufs/by-name/misc           /misc       none     none  wait,required
+/dev/block/platform/fa500000.ufs/by-name/modem_vendor   /vendor/modem/modem_vendor   ext4     ro,barrier=1  wait,required,hvb
+/dev/block/platform/fa500000.ufs/by-name/modem_driver   /vendor/modem/modem_driver   ext4     ro,barrier=1  wait,required,hvb

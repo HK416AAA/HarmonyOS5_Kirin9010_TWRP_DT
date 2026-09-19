@@ -59,9 +59,12 @@ BOARD_MKBOOTIMG_ARGS += --tags_offset 0x100
 TARGET_RECOVERY_FSTAB := device/huawei/kirin9010/twrp.fstab
 TARGET_RECOVERY_PIXEL_FORMAT := RGBX_8888
 TARGET_RECOVERY_DEVICE_DIRS += device/huawei/kirin9010
+# HarmonyOS partitions: system/vendor/sys_prod/chip_prod/cust/version/preload/
+# patch are erofs with ext4 fallback; userdata is hmfs; there is no f2fs or
+# metadata partition on this device.
 TARGET_USERIMAGES_USE_EXT4 := true
-TARGET_USERIMAGES_USE_F2FS := true
-BOARD_USES_METADATA_PARTITION := true
+TARGET_USERIMAGES_USE_EROFS := true
+TW_INCLUDE_EROFS := true
 BOARD_USES_FULL_RECOVERY_IMAGE := true
 
 # HarmonyOS split-boot: output is already a kernel-less ramdisk image and is
@@ -79,7 +82,6 @@ TW_USE_TOOLBOX := true
 TW_INCLUDE_REPACKTOOLS := true
 TW_INCLUDE_RESETPROP := true
 TW_EXCLUDE_DEFAULT_USB_INIT := true
-TW_HAS_NO_RECOVERY_PARTITION := true
 TW_CUSTOM_CPU_TEMP_PATH := "/sys/class/thermal/thermal_zone0/temp"
 
 # Storage
