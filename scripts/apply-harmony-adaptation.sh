@@ -47,7 +47,16 @@ else
 fi
 echo ">>> device tree at ${DEVICE_DIR}"
 
-# 2. Make sure the recovery fstab/overlay files are where device.mk expects.
+# 2. Regenerate prop.default from the HarmonyOS .para source of truth so the
+#    Android side can never drift from the .para side.
+if [ -f "${HERE}/harmony/param/ohos.para" ]; then
+    echo ">>> deriving prop.default from harmony/param/ohos.para"
+    python3 "${HERE}/scripts/para2prop.py" \
+        "${HERE}/harmony/param/ohos.para" \
+        -o "${HERE}/harmony/prop.default"
+fi
+
+# 3. Make sure the recovery fstab/overlay files are where device.mk expects.
 REQUIRED=(
     "BoardConfig.mk"
     "device.mk"
@@ -56,6 +65,8 @@ REQUIRED=(
     "twrp.fstab"
     "recovery.fstab"
     "harmony/prop.default"
+    "harmony/param/ohos.para"
+    "harmony/param/ohos.para.dac"
     "harmony/init.recovery.harmony.rc"
     "harmony/ueventd.harmony.rc"
 )
@@ -67,7 +78,7 @@ for f in "${REQUIRED[@]}"; do
 done
 echo ">>> device tree validated"
 
-# 3. Apply optional core patches (only if the patches/ dir has any).
+# 4. Apply optional core patches (only if the patches/ dir has any).
 shopt -s nullglob
 for p in "${HERE}"/patches/*.patch; do
     echo ">>> applying core patch: $(basename "$p")"
@@ -78,13 +89,14 @@ for p in "${HERE}"/patches/*.patch; do
 done
 shopt -u nullglob
 
-# 4. Report the HarmonyOS adaptation summary for the CI log.
+# 5. Report the HarmonyOS adaptation summary for the CI log.
 cat <<'EOF'
 >>> HarmonyOS adaptation active:
       - kernel-less ramdisk  : TARGET_NO_KERNEL := true
       - boot header geometry : v0, kernel_size=0, ramdisk@0x100000
       - fstab                : HarmonyOS by-name partition names
-      - compat overlay       : prop.default + init.recovery.harmony.rc
+      - harmony params       : param/ohos.para (+ .dac) as source of truth
+      - compat overlay       : prop.default (derived) + init.recovery.harmony.rc
       - crypto               : disabled (Huawei FBE unsupported)
       - post-build           : scripts/make-recovery-ramdisk.py
 EOF

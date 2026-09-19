@@ -1,0 +1,21 @@
+# ohos.para.dac - discretionary access control for the parameters in ohos.para
+#
+# HarmonyOS applies per-namespace ownership/permissions to parameters. The
+# format mirrors the stock image (etc/param/ohos.para.dac):
+#
+#   <name-or-prefix>=<owner>:<group>:<mode>[:type]
+#
+# A trailing dot means "prefix". Optional type is int or bool.
+# This file lets the OHOS param service, if present, accept our parameters.
+
+# Product / build identity
+const.product.=root:root:0775
+const.build.=root:root:0775
+const.secure=root:root:0775
+const.debuggable=root:root:0775
+const.allow.mock.location=root:root:0775
+const.actionable_compatible_property.enabled=root:root:0775
+const.recovery.mode=root:root:0775
+
+# Boot / hardware
+ohos.boot.=system:bootctrl:0775

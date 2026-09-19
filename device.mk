@@ -22,9 +22,13 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/twrp.fstab:recovery/root/system/etc/recovery.fstab \
     $(LOCAL_PATH)/recovery.fstab:recovery/root/etc/recovery.fstab
 
-# HarmonyOS compatibility overlay (props, extra init, ueventd).
+# HarmonyOS compatibility overlay (props, params, extra init, ueventd).
+# prop.default is generated from harmony/param/ohos.para; the .para/.dac pair
+# is installed at the same path the stock OpenHarmony updater uses (etc/param).
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/harmony/prop.default:recovery/root/prop.default \
+    $(LOCAL_PATH)/harmony/param/ohos.para:recovery/root/etc/param/ohos.para \
+    $(LOCAL_PATH)/harmony/param/ohos.para.dac:recovery/root/etc/param/ohos.para.dac \
     $(LOCAL_PATH)/harmony/init.recovery.harmony.rc:recovery/root/etc/init/harmony.rc \
     $(LOCAL_PATH)/harmony/ueventd.harmony.rc:recovery/root/etc/init/ueventd.harmony.rc
 

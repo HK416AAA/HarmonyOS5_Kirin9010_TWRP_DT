@@ -33,6 +33,16 @@ HarmonyOS-specific work is a boundary adaptation, not a rewrite of TWRP:
 | Build shape | emits a kernel-less header-v0 `recovery_ramdisk.img` | `scripts/` |
 | Core patches | applied to TWRP source only when truly required | `patches/` |
 
+## HarmonyOS props, not Android props
+
+HarmonyOS has no `ro.*` properties; it stores parameters as `.para` files
+(`const.product.*`, `ohos.boot.*`) that init reads via `setparam`. Device
+identity therefore lives in `harmony/param/ohos.para` (with matching
+`ohos.para.dac` permissions) in HarmonyOS format, and `harmony/prop.default` is
+**generated** from it by `scripts/para2prop.py`. Edit the `.para` file, not
+`prop.default`. See [harmony/README.md](harmony/README.md) for the mapping and
+for why `const.secure=1` is not copied onto recovery's `ro.secure`.
+
 ## Repository layout
 
 ```
@@ -45,7 +55,10 @@ HarmonyOS-specific work is a boundary adaptation, not a rewrite of TWRP:
 ├── twrp.fstab / recovery.fstab        HarmonyOS partition mount tables
 ├── init.recovery.kirin9010.rc         recovery init
 ├── harmony/                           HarmonyOS compatibility overlay
-│   ├── prop.default
+│   ├── param/ohos.para                HarmonyOS params (source of truth)
+│   ├── param/ohos.para.dac            HarmonyOS param permissions
+│   ├── prop.default                   generated from ohos.para
+│   ├── ohos.recovery.cfg              OHOS-format init reference (unused)
 │   ├── init.recovery.harmony.rc
 │   ├── ueventd.harmony.rc
 │   └── sepolicy/recovery.te
@@ -53,6 +66,7 @@ HarmonyOS-specific work is a boundary adaptation, not a rewrite of TWRP:
 │   ├── setup-source.sh                fetch latest official TWRP source
 │   ├── apply-harmony-adaptation.sh    install tree + apply overlay/patches
 │   ├── build.sh                       lunch + mka + wrap ramdisk
+│   ├── para2prop.py                   derive prop.default from ohos.para
 │   └── make-recovery-ramdisk.py       kernel-less header-v0 repack
 ├── reference/                         official Kirin 9010 configs (fstab/init)
 ├── patches/                           optional core patches (empty)

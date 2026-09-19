@@ -1,0 +1,40 @@
+# ohos.para - HarmonyOS device parameters for the Kirin 9010 recovery.
+#
+# This is the HarmonyOS-native identity file. HarmonyOS does not use Android
+# `ro.*` properties; it stores parameters as `.para` files read by the param
+# service and exposed to init via `setparam` / `param:<key>=<value>` triggers.
+#
+# Format: <key>=<value>   (one per line, optional double quotes)
+# Parameter namespaces and their DAC are declared in ohos.para.dac.
+#
+# Values are taken from the official device configs (reference/) and the stock
+# OpenHarmony updater image (etc/param/ohos.para).
+
+# --- Product identity (const.product. namespace) ---
+const.product.name=HUAWEI Kirin 9010
+const.product.model=Kirin9010
+const.product.manufacturer=HUAWEI
+const.product.brand=HUAWEI
+const.product.devicetype=pad
+const.product.hardwareversion=Kirin9010
+const.product.cpu.abilist=arm64-v8a
+const.product.software.version=OpenHarmony 5.0.5.165
+const.product.firstapiversion=1
+
+# --- Build identity (const.build. namespace) ---
+const.build.characteristics=default
+const.build.roothash=default
+
+# --- Security ---
+const.secure=1
+const.debuggable=0
+const.allow.mock.location=0
+const.actionable_compatible_property.enabled=false
+
+# --- Boot / hardware (ohos.boot. namespace) ---
+ohos.boot.hardware=kirin
+ohos.boot.ufs=fa500000.ufs
+ohos.boot.usb.controller=efc00000.dwc3
+
+# --- Recovery marker (vendor namespace, safe to add) ---
+const.recovery.mode=1
