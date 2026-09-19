@@ -18,7 +18,7 @@ HarmonyOS format, and the Android side is generated from it.
 | `param/hilog.para` + `.dac` | HarmonyOS `.para` | logging params for the bundled `libhilog.so` |
 | `param/hdc.para` + `.dac` | HarmonyOS `.para` | HDC transport (USB enabled) |
 | `prop.default` | Android props | **Generated** from `ohos.para`; reference only, not installed |
-| `prop-overrides.mk` | make fragment | **Generated**; `device.mk` includes it as `PRODUCT_PROPERTY_OVERRIDES` |
+| `prop-overrides.mk` | make fragment | **Generated**; `device.mk` includes it (`PRODUCT_PROPERTY_OVERRIDES` + `PRODUCT_PRODUCT_PROPERTIES`) |
 | `ohos.recovery.cfg` | HarmonyOS init | reference `setparam` jobs; not used by TWRP's init |
 | `init.recovery.harmony.rc` | Android init | mounts/`symlink` that TWRP's init runs |
 | `ueventd.harmony.rc` | Android ueventd | device node rules ported from the stock updater |
@@ -52,10 +52,17 @@ build, so editing `ohos.para` is enough to change both sides.
 reach the image come from `prop-overrides.mk`: the build system generates
 `recovery/root/prop.default` itself (by concatenating the partition
 `build.prop` files), so shipping our own file at that path is a duplicate-rule
-error. Feeding the values through `PRODUCT_PROPERTY_OVERRIDES` puts them into
-`system/build.prop`, which is concatenated into the generated file. Values that
-contain whitespace (the product name, the software version) cannot be expressed
-as a make list word and appear only in `prop.default`.
+error. Device identity and TWRP runtime values are fed through
+`PRODUCT_PROPERTY_OVERRIDES` (`system/build.prop`). The security/debug values
+(`ro.secure`, `ro.debuggable`, ...) are fed through
+`PRODUCT_PRODUCT_PROPERTIES` instead, because `core/main.mk` already assigns
+them to `ADDITIONAL_SYSTEM_PROPERTIES` and a second system assignment makes
+`post_process_props` fail with "found duplicate sysprop assignments". Both
+`system/build.prop` and `product/etc/build.prop` are concatenated into the
+generated `recovery/root/prop.default`, product last, so recovery still ends up
+with these values. Values that contain whitespace (the product name, the
+software version) cannot be expressed as a make list word and appear only in
+`prop.default`.
 
 The translation is not mechanical:
 

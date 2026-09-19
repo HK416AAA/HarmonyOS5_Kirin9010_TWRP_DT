@@ -150,6 +150,22 @@ jobs:
           chmod a+rx "${HOME}/bin/repo"
           echo "${HOME}/bin" >> "${GITHUB_PATH}"
 
+      - name: Add swap space
+        # The free runner has 15 GiB of RAM and no swap. Android 14.1's
+        # soong_build peaks above that while it generates the ninja graph: the
+        # job dies at 99% of the bootstrap with exit code 143 and "The runner
+        # has received a shutdown signal", reproducibly, right after
+        # `cp out/host/linux-x86/bin/soong_build`. An 8 GiB swapfile gives the
+        # kernel headroom. `swapon` is allowed; no kernel tunables are changed.
+        run: |
+          if ! sudo fallocate -l 8G /swapfile; then
+            sudo dd if=/dev/zero of=/swapfile bs=1M count=8192 status=none
+          fi
+          sudo chmod 600 /swapfile
+          sudo mkswap /swapfile
+          sudo swapon /swapfile
+          free -h
+
       - name: Show disk before sync
         run: df -h /
 

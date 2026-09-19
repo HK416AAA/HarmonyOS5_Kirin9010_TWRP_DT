@@ -26,14 +26,14 @@ ro.usb.controller=efc00000.dwc3
 
 # --- TWRP recovery runtime ---
 ro.product.device=kirin9010
-ro.product.board=kirin9010
 ro.product.cpu.abi=arm64-v8a
-ro.board.platform=kirin
-ro.secure=0
-ro.debuggable=1
-ro.adb.secure=0
-ro.allow.mock.location=0
 ro.sf.lcd_density=320
 ro.usb.vid=0x12D1
 ro.usb.pid=0x5000
 ro.recovery.usb.mode=hdc
+
+# --- recovery security (overrides the userdebug defaults) ---
+ro.secure=0
+ro.debuggable=1
+ro.adb.secure=0
+ro.allow.mock.location=0

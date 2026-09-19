@@ -59,7 +59,7 @@ through the bundled loader on the official `ffs.hdc` gadget
 │   ├── param/ohos.para                HarmonyOS params (source of truth)
 │   ├── param/ohos.para.dac            HarmonyOS param permissions
 │   ├── prop.default                   generated reference (not installed)
-│   ├── prop-overrides.mk              generated PRODUCT_PROPERTY_OVERRIDES
+│   ├── prop-overrides.mk              generated props fragment (system+product)
 │   ├── ohos.recovery.cfg              OHOS-format init reference (unused)
 │   ├── init.recovery.harmony.rc
 │   ├── ueventd.harmony.rc
