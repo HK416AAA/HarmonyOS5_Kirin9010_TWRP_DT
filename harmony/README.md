@@ -31,7 +31,8 @@ the stock `etc/param/ohos.para.dac` syntax:
 <name-or-prefix>=<owner>:<group>:<mode>[:type]      # prefix ends with a dot
 ```
 
-Both files are installed at `recovery/root/etc/param/`, the same path the stock
+Both files are installed at `recovery/root/system/etc/param/` (i.e. `/etc/param/`
+through the ramdisk's `etc -> /system/etc` symlink), the same path the stock
 OpenHarmony updater uses.
 
 ## Why the props are generated

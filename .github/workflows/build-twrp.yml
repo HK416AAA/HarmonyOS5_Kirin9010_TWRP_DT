@@ -100,17 +100,11 @@ jobs:
       JOB_COUNT: 4
       # Jobs used to fetch; sync is network-bound so it can be parallelised more.
       SYNC_JOBS: 8
-      USE_CCACHE: 1
-      # Keep ccache on the same writable filesystem as `out/`. On some runners
-      # the cached /home/runner/.ccache comes back read-only and every compile
-      # then dies with "Failed to create directory ...: Read-only file system".
-      CCACHE_DIR: ${{ github.workspace }}/.ccache
-      CCACHE_EXEC: /usr/bin/ccache
-      # Widen reuse across runs: ignore timestamps/inlining that change per build.
-      CCACHE_COMPILERCHECK: content
-      CCACHE_COMPRESS: 1
-      CCACHE_SLOPPINESS: pch_defines,time_macros,include_file_ctime,include_file_mtime
-      CCACHE_MAXSIZE: 8G
+      # ccache is intentionally disabled. The cache key contains the commit sha,
+      # so every new commit misses and ccache never pays for itself; worse, on
+      # some runners the cache path comes back read-only and every compile dies
+      # with "Failed to create directory .../.ccache/tmp: Read-only file system".
+      USE_CCACHE: 0
 
     steps:
       - name: Checkout device tree
@@ -155,27 +149,6 @@ jobs:
           curl -fsSL https://storage.googleapis.com/git-repo-downloads/repo -o "${HOME}/bin/repo"
           chmod a+rx "${HOME}/bin/repo"
           echo "${HOME}/bin" >> "${GITHUB_PATH}"
-
-      - name: Cache ccache
-        uses: actions/cache@v4
-        with:
-          path: ${{ github.workspace }}/.ccache
-          key: ccache-${{ matrix.twrp_branch }}-${{ github.sha }}
-          restore-keys: |
-            ccache-${{ matrix.twrp_branch }}-
-            ccache-
-
-      - name: Prepare ccache
-        # A restored cache can be read-only; verify before the build and fall
-        # back to a no-ccache build rather than failing every compile.
-        run: |
-          if mkdir -p "${CCACHE_DIR}" && touch "${CCACHE_DIR}/.probe" 2>/dev/null; then
-            rm -f "${CCACHE_DIR}/.probe"
-            echo "ccache enabled at ${CCACHE_DIR}"
-          else
-            echo "ccache dir ${CCACHE_DIR} is not writable; disabling ccache"
-            echo "USE_CCACHE=0" >> "${GITHUB_ENV}"
-          fi
 
       - name: Show disk before sync
         run: df -h /

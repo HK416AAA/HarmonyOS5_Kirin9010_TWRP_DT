@@ -10,10 +10,14 @@ TARGET_BOARD_API_LEVEL := 34
 # all derived from harmony/param/ohos.para by scripts/para2prop.py and included
 # from harmony/prop-overrides.mk below. ohos.para is the single source of truth.
 
-# Recovery fstab is installed from this tree.
+# Recovery fstab is installed from this tree. Everything under /etc in the
+# recovery root must be installed below system/etc: the ramdisk root has
+# `etc -> /system/etc`, and writing to recovery/root/etc/ directly creates a
+# real directory there, which makes the ramdisk-assembly rsync fail with
+# "could not make way for new symlink: root/etc".
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/twrp.fstab:recovery/root/system/etc/recovery.fstab \
-    $(LOCAL_PATH)/recovery.fstab:recovery/root/etc/recovery.fstab
+    $(LOCAL_PATH)/recovery.fstab:recovery/root/system/etc/recovery-aosp.fstab
 
 # HarmonyOS compatibility overlay (props, params, extra init, ueventd).
 # The .para/.dac pair is installed at the same path the stock OpenHarmony
@@ -23,13 +27,13 @@ PRODUCT_COPY_FILES += \
 -include $(LOCAL_PATH)/harmony/prop-overrides.mk
 
 PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/harmony/param/ohos.para:recovery/root/etc/param/ohos.para \
-    $(LOCAL_PATH)/harmony/param/ohos.para.dac:recovery/root/etc/param/ohos.para.dac \
-    $(LOCAL_PATH)/harmony/param/ohos.startup.para:recovery/root/etc/param/ohos.startup.para \
-    $(LOCAL_PATH)/harmony/param/hilog.para:recovery/root/etc/param/hilog.para \
-    $(LOCAL_PATH)/harmony/param/hilog.para.dac:recovery/root/etc/param/hilog.para.dac \
-    $(LOCAL_PATH)/harmony/init.recovery.harmony.rc:recovery/root/etc/init/harmony.rc \
-    $(LOCAL_PATH)/harmony/ueventd.harmony.rc:recovery/root/etc/init/ueventd.harmony.rc
+    $(LOCAL_PATH)/harmony/param/ohos.para:recovery/root/system/etc/param/ohos.para \
+    $(LOCAL_PATH)/harmony/param/ohos.para.dac:recovery/root/system/etc/param/ohos.para.dac \
+    $(LOCAL_PATH)/harmony/param/ohos.startup.para:recovery/root/system/etc/param/ohos.startup.para \
+    $(LOCAL_PATH)/harmony/param/hilog.para:recovery/root/system/etc/param/hilog.para \
+    $(LOCAL_PATH)/harmony/param/hilog.para.dac:recovery/root/system/etc/param/hilog.para.dac \
+    $(LOCAL_PATH)/harmony/init.recovery.harmony.rc:recovery/root/system/etc/init/harmony.rc \
+    $(LOCAL_PATH)/harmony/ueventd.harmony.rc:recovery/root/system/etc/init/ueventd.harmony.rc
 
 # HarmonyOS HDC (Device Connector). hdcd is a musl/OHOS binary, so the runtime
 # bundled by scripts/bundle-hdc.sh is installed under /ohos-hdc by the generated
@@ -38,8 +42,8 @@ PRODUCT_COPY_FILES += \
 # init.recovery.hdc.rc is imported from init.recovery.kirin9010.rc; it is also
 # installed under the ro.hardware name so it loads whichever name init imports.
 PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/harmony/param/hdc.para:recovery/root/etc/param/hdc.para \
-    $(LOCAL_PATH)/harmony/param/hdc.para.dac:recovery/root/etc/param/hdc.para.dac \
+    $(LOCAL_PATH)/harmony/param/hdc.para:recovery/root/system/etc/param/hdc.para \
+    $(LOCAL_PATH)/harmony/param/hdc.para.dac:recovery/root/system/etc/param/hdc.para.dac \
     $(LOCAL_PATH)/harmony/hdc/hdc-usb.sh:recovery/root/sbin/hdc-usb.sh \
     $(LOCAL_PATH)/harmony/hdc/init.recovery.hdc.rc:recovery/root/init.recovery.hdc.rc \
     $(LOCAL_PATH)/init.recovery.kirin9010.rc:recovery/root/init.recovery.kirin.rc
