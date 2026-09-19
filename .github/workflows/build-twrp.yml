@@ -85,7 +85,8 @@ jobs:
       TWRP_BRANCH: ${{ matrix.twrp_branch }}
       DEVICE: ${{ github.event.inputs.device || 'twrp_kirin9010' }}
       BUILD_TARGET: recoveryimage
-      SRC: /workspace/twrp
+      # /workspace is not writable on GitHub runners; use the runner home.
+      SRC: /home/runner/twrp
       # Jobs used to compile; the free runner has 4 cores / 16 GB RAM (22.04).
       JOB_COUNT: 4
       # Jobs used to fetch; sync is network-bound so it can be parallelised more.
