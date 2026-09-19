@@ -8,7 +8,9 @@
 #   DEVICE     lunch target (default twrp_kirin9010)
 #   TARGET     build target (default recoveryimage)
 
-set -euo pipefail
+# NOTE: no `set -u` here. AOSP's build/envsetup.sh references variables (TOP,
+# TARGET_PRODUCT, ...) before assigning them, so nounset aborts the source.
+set -eo pipefail
 
 SRC="${SRC:-/workspace/twrp}"
 DEVICE="${DEVICE:-twrp_kirin9010}"
