@@ -4,9 +4,12 @@
 # Usage: SRC=/workspace/twrp ./scripts/build.sh
 #
 # Environment:
-#   SRC        TWRP source checkout (default /workspace/twrp)
-#   DEVICE     lunch target (default twrp_kirin9010)
-#   TARGET     build target (default recoveryimage)
+#   SRC            TWRP source checkout (default /workspace/twrp)
+#   DEVICE         lunch target (default twrp_kirin9010)
+#   VARIANT        lunch variant (default userdebug)
+#   TARGET_RELEASE release config for 14.x `lunch <product>-<release>-<variant>`
+#                  (default ap2a, the release shipped by AOSP android-14.0.0_r67)
+#   BUILD_TARGET   build target (default recoveryimage)
 
 # NOTE: no `set -u` here. AOSP's build/envsetup.sh references variables (TOP,
 # TARGET_PRODUCT, ...) before assigning them, so nounset aborts the source.
@@ -14,6 +17,7 @@ set -eo pipefail
 
 SRC="${SRC:-/workspace/twrp}"
 DEVICE="${DEVICE:-twrp_kirin9010}"
+VARIANT="${VARIANT:-userdebug}"
 BUILD_TARGET="${BUILD_TARGET:-recoveryimage}"
 JOB_COUNT="${JOB_COUNT:-$(nproc --all 2>/dev/null || echo 4)}"
 HERE="$(cd "$(dirname "$0")/.." && pwd)"
@@ -29,8 +33,19 @@ export ALLOW_MISSING_DEPENDENCIES=true
 export LC_ALL=C
 export TZ=UTC
 
-echo ">>> lunch ${DEVICE}-userdebug"
-lunch "${DEVICE}-userdebug"
+# Android 14.1 replaced `lunch <product>-<variant>` with
+# `lunch <product>-<release>-<variant>` and rejects the 2-part form outright
+# ("Invalid lunch combo"). Detect the newer envsetup and supply a release
+# config that actually exists in the tree; older branches keep the 2-part form.
+if grep -q 'product>-<release>-<variant>' build/envsetup.sh 2>/dev/null; then
+    TARGET_RELEASE="${TARGET_RELEASE:-ap2a}"
+    export TARGET_RELEASE
+    echo ">>> lunch ${DEVICE}-${TARGET_RELEASE}-${VARIANT}"
+    lunch "${DEVICE}-${TARGET_RELEASE}-${VARIANT}"
+else
+    echo ">>> lunch ${DEVICE}-${VARIANT}"
+    lunch "${DEVICE}-${VARIANT}"
+fi
 
 echo ">>> building ${BUILD_TARGET} with ${JOB_COUNT} jobs"
 # A kernel-less target can make the final boot-image step complain even though

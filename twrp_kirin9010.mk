@@ -16,6 +16,14 @@ PRODUCT_MODEL := HarmonyOS Kirin 9010
 PRODUCT_MANUFACTURER := HUAWEI
 PRODUCT_RELEASE_NAME := kirin9010
 
+# This device tree sets TARGET_NO_KERNEL=true (the kernel comes from the stock
+# `kernel` partition, not from our build). build/make decides whether a recovery
+# image is produced in board_config.mk and, with TARGET_NO_KERNEL=true and no
+# explicit override, leaves BUILDING_RECOVERY_IMAGE empty. `mka recoveryimage`
+# then resolves to a no-op ("ninja: no work to do"). Setting this product
+# variable forces the recovery image to be generated as usual.
+PRODUCT_BUILD_RECOVERY_IMAGE := true
+
 PRODUCT_BUILD_PROP_OVERRIDES += \
     PRODUCT_DEVICE=kirin9010 \
     PRODUCT_NAME=kirin9010 \

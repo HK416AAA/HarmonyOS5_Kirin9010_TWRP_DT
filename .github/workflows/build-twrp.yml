@@ -8,7 +8,12 @@ name: Build TWRP for HarmonyOS Kirin 9010
 # libncurses5, which Ubuntu 24.04 no longer ships.
 #
 # TWRP releases for Android 13 were skipped upstream (the recovery line went
-# 12.1 -> 14), so "13.1" maps onto the twrp-14 / twrp-14.1 branches.
+# 12.1 -> 14), so "13.1" maps onto twrp-14 / twrp-14.1.
+#
+# The twrp-14 branch is intentionally not built: its manifest pulls the
+# Android-14.1 build/make (which requires `lunch <product>-<release>-<variant>`)
+# but does not include the build/release project that defines those release
+# configs, so it cannot be lunched at all. twrp-14.1 is the maintained line.
 
 on:
   push:
@@ -51,8 +56,10 @@ jobs:
           python3 - <<'PY'
           import json, os
 
-          # Branches that exist in minimal-manifest-twrp (checked upstream).
-          supported = ["twrp-11", "twrp-12.1", "twrp-14", "twrp-14.1"]
+          # Branches that exist upstream and can actually be lunched. twrp-14
+          # is excluded: it lacks the build/release project its 14.1 build
+          # system requires (see the header comment).
+          supported = ["twrp-11", "twrp-12.1", "twrp-14.1"]
 
           if os.environ.get("GITHUB_EVENT_NAME") == "workflow_dispatch":
               raw = (os.environ.get("INPUT_BRANCHES") or "").strip()
@@ -84,6 +91,8 @@ jobs:
     env:
       TWRP_BRANCH: ${{ matrix.twrp_branch }}
       DEVICE: ${{ github.event.inputs.device || 'twrp_kirin9010' }}
+      # Only used by the 14.x branches; older branches lunch the 2-part form.
+      TARGET_RELEASE: ap2a
       BUILD_TARGET: recoveryimage
       # /workspace is not writable on GitHub runners; use the runner home.
       SRC: /home/runner/twrp
