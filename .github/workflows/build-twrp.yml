@@ -45,10 +45,18 @@ jobs:
       DEVICE: ${{ github.event.inputs.device || 'twrp_kirin9010' }}
       BUILD_TARGET: recoveryimage
       SRC: /workspace/twrp
+      # Jobs used to compile; the free runner has 4 cores / 7 GB RAM.
       JOB_COUNT: 4
+      # Jobs used to fetch; sync is network-bound so it can be parallelised more.
+      SYNC_JOBS: 8
       USE_CCACHE: 1
       CCACHE_DIR: /home/runner/.ccache
       CCACHE_EXEC: /usr/bin/ccache
+      # Widen reuse across runs: ignore timestamps/inlining that change per build.
+      CCACHE_COMPILERCHECK: content
+      CCACHE_COMPRESS: 1
+      CCACHE_SLOPPINESS: pch_defines,time_macros,include_file_ctime,include_file_mtime
+      CCACHE_MAXSIZE: 8G
 
     steps:
       - name: Checkout device tree
