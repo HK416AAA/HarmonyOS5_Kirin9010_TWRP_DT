@@ -1,0 +1,26 @@
+# init.recovery.harmony.rc
+#
+# HarmonyOS-specific recovery init hooks.
+#
+# The stock OHOS updater ramdisk (etc/updater_common.cfg) does:
+#   pre-init : symlink /system/bin -> /bin
+#   init     : mkdir /system /vendor /tmp /data /param ; mount tmpfs /tmp
+#   post-init: trigger post-fs-data ; mkdir /sdcard ; start updater
+#
+# TWRP provides its own userspace, so the `updater` service is not started.
+# The mount points and the /bin symlink are replicated so that any stock kernel
+# module or firmware path that expects the OHOS layout still resolves.
+
+on early-init
+    mkdir /param 0755 system system
+    mkdir /system 0755 root root
+    mkdir /vendor 0755 root root
+
+on init
+    symlink /system/bin /bin
+    mkdir /tmp 0777 system system
+    mount tmpfs tmpfs /tmp mode=0755
+    chown system system /tmp
+
+on post-fs-data
+    mkdir /sdcard 0777 root root

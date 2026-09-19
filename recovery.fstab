@@ -1,0 +1,18 @@
+#
+# AOSP-style recovery fstab - HarmonyOS 5 / Kirin 9010 tablets.
+# Mirrors twrp.fstab for plain AOSP recovery builds.
+#
+
+#<src>                              <mnt_point>       <type>  <mnt_flags and options>   <fs_mgr_flags>
+/dev/block/by-name/system            /system           ext4    ro,barrier=1              wait
+/dev/block/by-name/vendor            /vendor           ext4    ro,barrier=1              wait
+/dev/block/by-name/product           /product          ext4    ro,barrier=1              wait
+/dev/block/by-name/cust              /cust             ext4    ro,barrier=1              nofail
+/dev/block/by-name/userdata          /data             f2fs    noatime,nosuid,nodev      wait,check
+/dev/block/by-name/cache             /cache            ext4    noatime,nosuid,nodev      wait,check
+/dev/block/by-name/metadata          /metadata         ext4    noatime,nosuid,nodev      wait
+/dev/block/by-name/misc              /misc             emmc    defaults                  defaults
+/dev/block/by-name/splash2           /splash2          ext4    defaults                  defaults
+/dev/block/mmcblk1p1                 /sdcard           vfat    defaults                  defaults
+/dev/block/mmcblk1                   /sdcard           vfat    defaults                  defaults
+/dev/block/sde1                      /sdcard           vfat    defaults                  defaults

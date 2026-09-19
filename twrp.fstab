@@ -1,0 +1,46 @@
+#
+# Fstab for TWRP on HarmonyOS 5 / Kirin 9010 tablets.
+#
+# Base data from the stock updater mount table (etc/fstab.updater):
+#   /misc emmc, /cache ext4, /data f2fs, /splash2 ext4, external vfat.
+# system/vendor/product/cust/metadata entries are inferred from the HarmonyOS
+# partition set and must be validated against the real GPT:
+#   adb shell su -c 'ls -l /dev/block/by-name'
+#
+# Format: <src> <mnt_point> <type> <mnt_flags> <fs_mgr_flags>
+#
+
+# --- Boot / control ---
+/dev/block/by-name/misc              /misc        emmc    defaults          defaults
+/dev/block/by-name/splash2           /splash2     ext4    defaults          defaults
+/dev/block/by-name/bootctrl          /bootctrl    emmc    defaults          nofail
+/dev/block/by-name/metadata          /metadata    ext4    defaults          nofail
+
+# --- System partitions (validate names against real GPT) ---
+/dev/block/by-name/system            /system      ext4    ro                wait
+/dev/block/by-name/vendor            /vendor      ext4    ro                wait
+/dev/block/by-name/product           /product     ext4    ro                nofail
+/dev/block/by-name/cust              /cust        ext4    ro                nofail
+/dev/block/by-name/preload           /preload     ext4    ro                nofail
+
+# --- Data / cache ---
+# Stock userdata is f2fs with aes-256-xts:aes-256-cts FBE; recovery mounts it
+# unencrypted, so no fileencryption flag here.
+/dev/block/by-name/userdata          /data        f2fs    defaults          wait,check
+/dev/block/by-name/cache             /cache       ext4    defaults          wait
+
+# --- Boot images (raw emmc, for backup/restore) ---
+/dev/block/by-name/kernel            /kernel      emmc    defaults          nofail
+/dev/block/by-name/boot_ramdisk      /boot        emmc    defaults          nofail
+/dev/block/by-name/recovery_ramdisk  /recovery    emmc    defaults          nofail
+/dev/block/by-name/recovery_vendor   /recovery_vendor emmc defaults           nofail
+
+# --- Removable / external storage ---
+/dev/block/mmcblk1p1                 /external_sd vfat    defaults          nofail
+/dev/block/mmcblk1                   /usb_otg     vfat    defaults          nofail
+/dev/block/sde1                      /usb_otg     vfat    defaults          nofail
+
+# --- Firmware / radio (read-only backup targets) ---
+/dev/block/by-name/modem_fw          /modem_fw    emmc    defaults          nofail
+/dev/block/by-name/modem_secure      /modem_secure emmc   defaults          nofail
+/dev/block/by-name/oeminfo           /oeminfo     emmc    defaults          nofail

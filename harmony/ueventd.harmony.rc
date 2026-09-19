@@ -1,0 +1,14 @@
+# ueventd.harmony.rc
+#
+# HarmonyOS devices expose block storage over UFS (fa500000.ufs) and MMC.
+# ueventd must create the standard /dev/block/by-name symlinks that the fstab
+# and the rest of recovery rely on. The stock OHOS ueventd.config uses the same
+# by-name scheme, so only the platform drivers differ.
+
+# Block devices
+/dev/block/sd*               0660   root   system
+/dev/block/mmcblk*           0660   root   system
+/dev/block/vd*               0660   root   system
+
+# UFS host controller
+/dev/block/platform/*/by-name/*  0660   root   system

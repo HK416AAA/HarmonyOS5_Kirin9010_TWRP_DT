@@ -1,0 +1,31 @@
+#
+# prop.default - HarmonyOS compatibility properties for TWRP recovery.
+#
+# HarmonyOS stores build parameters as .para files, not Android properties.
+# TWRP's recovery init still reads prop.default/default.prop, so this file
+# provides the minimum set it expects and mirrors the device identity taken
+# from the stock etc/param/ohos.para.
+
+ro.hardware=kirin
+ro.board.platform=kirin
+ro.product.device=kirin9010
+ro.product.board=kirin9010
+ro.product.brand=HUAWEI
+ro.product.model=HarmonyOS Kirin 9010
+ro.product.manufacturer=HUAWEI
+ro.product.cpu.abi=arm64-v8a
+ro.product.cpu.abilist=arm64-v8a
+
+ro.secure=0
+ro.debuggable=1
+ro.adb.secure=0
+ro.allow.mock.location=0
+
+# Recovery environment
+ro.recovery.mode=1
+ro.twrp.version=twrp-14.1
+ro.sf.lcd_density=320
+
+# HarmonyOS identity carried over from the stock updater image
+ro.ohos.devicetype=pad
+ro.ohos.software.version=OpenHarmony 5.0.5.165

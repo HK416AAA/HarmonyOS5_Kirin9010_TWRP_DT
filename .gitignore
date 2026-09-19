@@ -1,0 +1,22 @@
+# Build output
+out/
+*.img
+*.img.sha256
+*.ramdisk
+
+# Pulled blobs / per-model dumps
+vendor_blobs/
+prebuilt/kernel
+prebuilt/dtb.img
+prebuilt/*.img
+partitions.txt
+
+# Editor / OS
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+# Python bytecode
+__pycache__/
+*.pyc

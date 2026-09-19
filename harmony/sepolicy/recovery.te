@@ -1,0 +1,13 @@
+# recovery.te - HarmonyOS Kirin 9010 recovery SELinux notes.
+#
+# HarmonyOS ships a custom SELinux policy (types prefixed aoco_ in the stock
+# updater image). TWRP recovery runs permissive during bring-up
+# (SELINUX_IGNORE_NEVERALLOWS and the recovery default), so no extra type
+# enforcement rules are required to boot.
+#
+# If you later enable enforcing mode, add rules here for:
+#   - access to /dev/block/by-name/* (UFS on fa500000.ufs)
+#   - access to /data (f2fs) and /metadata
+#   - access to the framebuffer/DRM and input devices
+#
+# This file is intentionally comment-only so it cannot break the policy build.

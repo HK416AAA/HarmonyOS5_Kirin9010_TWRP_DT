@@ -1,0 +1,30 @@
+# init.recovery.kirin9010.rc - recovery init extensions for HarmonyOS Kirin 9010.
+#
+# HarmonyOS split-boot: the kernel comes from the stock `kernel` partition and
+# the ramdisk from `recovery_ramdisk`. Recovery must create the mount points
+# and by-name-backed paths before fstab is processed.
+
+on early-init
+    mkdir /bootctrl 0755 system system
+    mkdir /metadata 0755 system system
+    mkdir /splash2 0755 system system
+    mkdir /kernel 0755 system system
+    mkdir /recovery_vendor 0755 system system
+
+on init
+    # Mirror the stock OHOS layout where /system/bin is /bin.
+    symlink /system/bin /bin
+    mkdir /tmp 0777 system system
+    mount tmpfs tmpfs /tmp mode=0755
+
+on fs
+    mount_all /system/etc/recovery.fstab --early
+
+on post-fs-data
+    mkdir /data/media 0770 media_rw media_rw
+    mkdir /data/media/0 0770 media_rw media_rw
+
+# HarmonyOS parameter service ships its config as .para files, not Android
+# properties. Nothing to import here, but keep the service hook point.
+on property:vold.decrypt=trigger_restart_framework
+    start recovery
