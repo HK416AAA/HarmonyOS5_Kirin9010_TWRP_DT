@@ -1,0 +1,20 @@
+# hilog.para - HarmonyOS logging parameters.
+#
+# Derived from the stock OpenHarmony 5.0.5.165 updater ramdisk
+# (etc/param/hilog.para). The bundled musl libhilog.so that hdcd links against
+# reads these, so they are shipped alongside the HDC runtime.
+#
+# Copyright (c) 2021 Huawei Device Co., Ltd. Licensed under Apache-2.0.
+
+hilog.private.on=true
+hilog.debug.on=false
+persist.sys.hilog.kmsg.on=true
+persist.sys.hilog.debug.on=false
+persist.sys.hilog.binary.on=true
+persist.sys.hilog.binary.forhota.on=true
+hilog.flowctrl.proc.on=false
+hilog.flowctrl.domain.on=false
+hilog.level.debug.on=false
+
+hilog.loggable.global=I
+hilog.buffersize.global=262144

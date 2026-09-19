@@ -1,0 +1,10 @@
+# ohos.startup.para - early-boot parameters.
+#
+# Derived from the stock OpenHarmony 5.0.5.165 updater ramdisk
+# (etc/param/ohos.startup.para).
+#
+# persist.sys.usb.config=hdc selects the HDC function in the OHOS USB stack and
+# complements ro.recovery.usb.mode=hdc in harmony/prop.default.
+
+persist.sys.usb.config=hdc
+persist.init.bootevent.enable=true

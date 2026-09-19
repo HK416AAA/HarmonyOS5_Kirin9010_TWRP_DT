@@ -3,6 +3,12 @@ name: Build TWRP for HarmonyOS Kirin 9010
 # Builds TWRP from the official minimal manifest, drops this device tree in,
 # applies the HarmonyOS adaptation layer, and produces a flashable kernel-less
 # `recovery_ramdisk.img`.
+#
+# The runner is pinned to ubuntu-22.04: the Android 11..14 host toolchain needs
+# libncurses5, which Ubuntu 24.04 no longer ships.
+#
+# TWRP releases for Android 13 were skipped upstream (the recovery line went
+# 12.1 -> 14), so "13.1" maps onto the twrp-14 / twrp-14.1 branches.
 
 on:
   push:
@@ -12,16 +18,10 @@ on:
     branches: [ main, master ]
   workflow_dispatch:
     inputs:
-      twrp_branch:
-        description: 'TWRP manifest branch (latest official)'
-        required: true
-        default: 'twrp-14.1'
-        type: choice
-        options:
-          - twrp-14.1
-          - twrp-14
-          - twrp-12.1
-          - twrp-11
+      branches:
+        description: 'Comma-separated TWRP branches to build (empty = all supported)'
+        required: false
+        default: ''
       device:
         description: 'Lunch target'
         required: true
@@ -35,17 +35,56 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  setup:
+    name: Resolve build matrix
+    runs-on: ubuntu-22.04
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+    steps:
+      - name: Build branch matrix
+        id: matrix
+        env:
+          INPUT_BRANCHES: ${{ github.event.inputs.branches }}
+        run: |
+          python3 - <<'PY'
+          import json, os
+
+          # Branches that exist in minimal-manifest-twrp (checked upstream).
+          supported = ["twrp-11", "twrp-12.1", "twrp-14", "twrp-14.1"]
+
+          if os.environ.get("GITHUB_EVENT_NAME") == "workflow_dispatch":
+              raw = (os.environ.get("INPUT_BRANCHES") or "").strip()
+              selected = raw.replace(",", " ").split() or supported
+          else:
+              selected = ["twrp-14.1"]
+
+          include = []
+          for branch in selected:
+              java = 11 if branch in ("twrp-11", "twrp-12.1") else 17
+              include.append({"twrp_branch": branch, "java": java})
+
+          matrix = {"include": include}
+          print("matrix:", json.dumps(matrix))
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as handle:
+              handle.write("matrix=" + json.dumps(matrix) + "\n")
+          PY
+
   build:
-    name: TWRP ${{ github.event.inputs.twrp_branch || 'twrp-14.1' }} / ${{ github.event.inputs.device || 'twrp_kirin9010' }}
-    runs-on: ubuntu-latest
+    name: TWRP ${{ matrix.twrp_branch }} / ${{ github.event.inputs.device || 'twrp_kirin9010' }}
+    needs: setup
+    runs-on: ubuntu-22.04
     timeout-minutes: 350
 
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.setup.outputs.matrix) }}
+
     env:
-      TWRP_BRANCH: ${{ github.event.inputs.twrp_branch || 'twrp-14.1' }}
+      TWRP_BRANCH: ${{ matrix.twrp_branch }}
       DEVICE: ${{ github.event.inputs.device || 'twrp_kirin9010' }}
       BUILD_TARGET: recoveryimage
       SRC: /workspace/twrp
-      # Jobs used to compile; the free runner has 4 cores / 7 GB RAM.
+      # Jobs used to compile; the free runner has 4 cores / 16 GB RAM (22.04).
       JOB_COUNT: 4
       # Jobs used to fetch; sync is network-bound so it can be parallelised more.
       SYNC_JOBS: 8
@@ -74,22 +113,28 @@ jobs:
           large-packages: true
           swap-storage: true
 
-      - name: Set up Java 17
+      - name: Set up Java ${{ matrix.java }}
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: ${{ matrix.java }}
 
       - name: Install build dependencies
         run: |
           sudo apt-get update
+          # libncurses5 is required by the Android host toolchain and only
+          # exists up to Ubuntu 22.04, which is why the runner is pinned.
           sudo apt-get install -y --no-install-recommends \
             bc bison build-essential ccache curl flex g++-multilib gcc-multilib \
             git gnupg gperf imagemagick lib32readline-dev lib32z1-dev \
-            libelf-dev liblz4-tool libncurses5 libncurses5-dev libsdl1.2-dev \
-            libssl-dev libswitch-perl libxml2-utils lzop pngcrush rsync \
-            schedtool squashfs-tools xsltproc zip zlib1g-dev \
-            python3 python-is-python3 openjdk-17-jdk
+            libelf-dev liblz4-tool libsdl1.2-dev libssl-dev libxml2-utils \
+            lzop pngcrush rsync schedtool squashfs-tools xsltproc zip \
+            zlib1g-dev python3 python-is-python3
+          # Package names drift between releases; never fail the job over one.
+          for pkg in libncurses5 libncurses5-dev lib32ncurses5-dev libswitch-perl; do
+            sudo apt-get install -y --no-install-recommends "${pkg}" \
+              || echo "warn: optional package ${pkg} unavailable, continuing"
+          done
           # repo tool
           mkdir -p "${HOME}/bin"
           curl -fsSL https://storage.googleapis.com/git-repo-downloads/repo -o "${HOME}/bin/repo"
@@ -100,9 +145,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: /home/runner/.ccache
-          key: ccache-${{ env.TWRP_BRANCH }}-${{ github.sha }}
+          key: ccache-${{ matrix.twrp_branch }}-${{ github.sha }}
           restore-keys: |
-            ccache-${{ env.TWRP_BRANCH }}-
+            ccache-${{ matrix.twrp_branch }}-
             ccache-
 
       - name: Show disk before sync
@@ -132,20 +177,25 @@ jobs:
         run: bash scripts/apply-harmony-adaptation.sh
 
       - name: Build recovery
-        run: bash scripts/build.sh
+        run: |
+          set -o pipefail
+          mkdir -p out
+          bash scripts/build.sh 2>&1 | tee out/build.log
 
       - name: Upload recovery_ramdisk artifact
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: recovery_ramdisk-${{ env.DEVICE }}-${{ env.TWRP_BRANCH }}
+          name: recovery_ramdisk-${{ env.DEVICE }}-${{ matrix.twrp_branch }}
           path: |
             out/recovery_ramdisk.img
             out/recovery_ramdisk.img.sha256
-          if-no-files-found: error
+            out/build.log
+          if-no-files-found: warn
           retention-days: 30
 
       - name: Publish release
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: startsWith(github.ref, 'refs/tags/v') && matrix.twrp_branch == 'twrp-14.1'
         uses: softprops/action-gh-release@v2
         with:
           files: |

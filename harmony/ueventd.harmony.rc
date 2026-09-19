@@ -1,20 +1,111 @@
 # ueventd.harmony.rc
 #
-# HarmonyOS Kirin 9010 block storage is UFS on the fa500000.ufs host; the
-# official fstab references /dev/block/platform/fa500000.ufs/by-name/*.
-# ueventd must create those platform/by-name symlinks (and the plain
-# /dev/block/by-name/* aliases) before the fstab is processed.
+# HarmonyOS Kirin 9010 device-node permissions and symlinks, ported from the
+# stock OpenHarmony 5.0.5.165 updater ramdisk (etc/ueventd.config).
+#
+# The stock file uses HarmonyOS group names; ueventd only knows the Android
+# names, so the HarmonyOS-only groups are written as the numeric gids taken
+# from the stock image (etc/group):
+#
+#   system=1000  dsoftbus=1024  watchdog=1100  shell=2000
+#   camera_host=3028  update=6666  input=6696
+#
+# Block storage is UFS on the fa500000.ufs host; the official fstab references
+# /dev/block/platform/fa500000.ufs/by-name/*. ueventd must create those
+# by-name symlinks before the fstab is processed.
 
-# Block devices
-/dev/block/sd*                              0660   root   system
-/dev/block/mmcblk*                          0660   root   system
-/dev/block/vd*                              0660   root   system
-/dev/block/nve*                             0660   root   system
-/dev/block/zram*                            0660   root   system
-/dev/block/hvgr*                            0666   system graphics
+# --- Core pseudo devices (mirrors the stock updater table) ---
+/dev/null                                   0666   root   root
+/dev/zero                                   0666   root   root
+/dev/full                                   0666   root   root
+/dev/ptmx                                   0666   root   root
+/dev/tty                                    0666   root   root
+/dev/random                                 0666   root   root
+/dev/urandom                                0666   root   root
+/dev/ashmem                                 0666   root   root
+/dev/binder                                 0666   root   root
+/dev/hwbinder                               0666   root   root
+/dev/vndbinder                              0666   root   root
+
+# --- Input ---
+/dev/input/event*                           0660   root   6696
+/dev/input/mice                             0660   root   6696
+/dev/input/mouse0                           0660   root   6696
+/dev/uinput                                 0660   3011   3011
+/dev/vinput                                 0660   1000   1004
+/dev/hdf_input_event*                       0660   3029   3029
+/dev/hidraw*                                0666   root   6696
+
+# --- Display / graphics (Huawei TDE + DRM) ---
+/dev/graphics/fb0                           0660   1000   1003
+/dev/hi_tde                                 0644   1000   1003
+/dev/dri/card0                              0666   root   1003
+/dev/dri/card0-DSI-1                        0666   root   1003
+/dev/dri/card0-HDMI-A-1                     0666   root   1003
+/dev/dri/renderD128                         0666   root   1003
+/dev/hdmi                                   0660   1000   1005
+/dev/hi_mipi                                0660   1000   1005
+/dev/hi_mipi_tx                             0660   1000   1005
+
+# --- Multimedia (VDP/VEN/ISP) ---
+/dev/jpeg                                   0666   1000   1003
+/dev/ion                                    0664   1000   1000
+/dev/mmz_userdev                            0644   1000   1005
+/dev/vb                                     0666   1000   1005
+/dev/vdec                                   0666   1000   1005
+/dev/venc                                   0666   1000   1005
+/dev/vi                                     0660   1000   1005
+/dev/vo                                     0660   1000   1005
+/dev/vpss                                   0660   1000   1005
+/dev/gdc                                    0660   1000   1005
+/dev/isp_dev                                0660   1000   1006
+/dev/video*                                 0660   root   3028
+
+# --- Security / tee / misc Huawei devices ---
+/dev/tc_ns_client                           0660   1000   1005
+/dev/access_token_id                        0666   3020   3020
+/dev/auth_ctrl                              0660   1000   1000
+/dev/avs                                    0660   1000   1005
+/dev/match                                  0660   1000   1005
+/dev/photo                                  0660   1000   1005
+/dev/rect                                   0660   1000   1005
+/dev/rgn                                    0660   1000   1005
+/dev/sys                                    0660   1000   1005
+/dev/vgs                                    0666   1000   1005
+/dev/rtc0                                   0640   3819   3819
+/dev/watchdog                               0660   root   1100
+/dev/HDF*                                   0666   root   root
+/dev/i2c-*                                  0660   1000   1006
+
+# --- Serial / debug (needed for bring-up logs) ---
+/dev/tty0                                   0660   root   1000
+/dev/ttyS*                                  0666   root   root
+/dev/ttyACM*                                0666   root   root
+/dev/ttyUSB*                                0666   root   root
+/dev/pmsg0                                  0222   root   1007
+
+# --- Bluetooth ---
+/dev/rtk_btusb                              0660   1002   root
+/dev/stpbt                                  0660   1002   1001
+/dev/btusb0                                 0660   1002   1002
+
+# --- Block devices ---
+/dev/block/sd*                              0660   root   1000
+/dev/block/mmcblk*                          0660   root   1000
+/dev/block/vd*                              0660   root   1000
+/dev/block/nve*                             0660   root   1000
+/dev/block/zram*                            0660   root   1000
+/dev/block/hvgr*                            0666   1000   1003
+/dev/block/sdd19                            0660   root   root
 
 # UFS host controller (HarmonyOS path used by the official fstab)
-/dev/block/platform/fa500000.ufs/by-name/*  0660   root   system
+/dev/block/platform/fa500000.ufs/by-name/*  0660   root   1000
+/dev/block/platform/fa500000.ufs/*          0660   root   1000
 
 # Generic platform alias for other SoCs in the family
-/dev/block/platform/*/by-name/*             0660   root   system
+/dev/block/platform/*/by-name/*             0660   root   1000
+
+# --- by-name compatibility symlinks ---
+# The stock updater references /dev/block/by-name/*; expose the UFS by-name
+# directory under both names. init.recovery.harmony.rc links the directory, so
+# individual devices resolve automatically.

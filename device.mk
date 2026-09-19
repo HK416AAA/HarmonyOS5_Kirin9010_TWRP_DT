@@ -29,6 +29,9 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/harmony/prop.default:recovery/root/prop.default \
     $(LOCAL_PATH)/harmony/param/ohos.para:recovery/root/etc/param/ohos.para \
     $(LOCAL_PATH)/harmony/param/ohos.para.dac:recovery/root/etc/param/ohos.para.dac \
+    $(LOCAL_PATH)/harmony/param/ohos.startup.para:recovery/root/etc/param/ohos.startup.para \
+    $(LOCAL_PATH)/harmony/param/hilog.para:recovery/root/etc/param/hilog.para \
+    $(LOCAL_PATH)/harmony/param/hilog.para.dac:recovery/root/etc/param/hilog.para.dac \
     $(LOCAL_PATH)/harmony/init.recovery.harmony.rc:recovery/root/etc/init/harmony.rc \
     $(LOCAL_PATH)/harmony/ueventd.harmony.rc:recovery/root/etc/init/ueventd.harmony.rc
 
