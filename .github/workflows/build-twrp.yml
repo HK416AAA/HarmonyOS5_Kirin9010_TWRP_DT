@@ -105,6 +105,21 @@ jobs:
           chmod +x scripts/*.sh scripts/*.py
           bash scripts/setup-source.sh
 
+      - name: Fetch HDC source image (optional)
+        # hdcd is a musl/OHOS binary and cannot be committed, so point the
+        # HDC_IMAGE_URL secret at a stock OpenHarmony updater_ramdisk.img you own
+        # to bundle it. Without the secret the build simply has no HDC.
+        env:
+          HDC_IMAGE_URL: ${{ secrets.HDC_IMAGE_URL }}
+        run: |
+          if [ -z "${HDC_IMAGE_URL}" ]; then
+            echo "HDC_IMAGE_URL not set: building without the hdcd runtime"
+            exit 0
+          fi
+          curl -fsSL "${HDC_IMAGE_URL}" -o /tmp/hdc_source.img
+          echo "HDC_SOURCE=/tmp/hdc_source.img" >> "${GITHUB_ENV}"
+          echo "HDC source image: $(du -h /tmp/hdc_source.img | cut -f1)"
+
       - name: Apply HarmonyOS adaptation
         run: bash scripts/apply-harmony-adaptation.sh
 

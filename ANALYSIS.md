@@ -190,9 +190,13 @@ rewrite of TWRP:
 2. **Compatibility overlay** (`harmony/`) - the Android properties and init
    nodes TWRP expects but HarmonyOS does not provide (`prop.default`,
    `init.recovery.harmony.rc`, `ueventd.harmony.rc`).
-3. **Build shape** - emit a header-v0 kernel-less `recovery_ramdisk.img`
+3. **HDC** (`harmony/hdc/`) - the updater ships the HDC daemon (`bin/hdcd`),
+   `etc/init.hdc.cfg` / `etc/init/hdcd.cfg` and `etc/param/hdc.para`, and the USB
+   config exposes FunctionFS `ffs.hdc` (idProduct `0x5000`). `hdcd` is musl/OHOS,
+   so it is bundled with its library closure and run through the bundled loader.
+4. **Build shape** - emit a header-v0 kernel-less `recovery_ramdisk.img`
    instead of a monolithic boot.img.
-4. **Optional patches** - `patches/*.patch` applied to the TWRP source when a
+5. **Optional patches** - `patches/*.patch` applied to the TWRP source when a
    core change is genuinely needed.
 
 ## 9. Consequences that still need hardware validation

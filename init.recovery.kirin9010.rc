@@ -4,6 +4,9 @@
 # HarmonyOS mounts the `system` partition at /usr and exposes extra product
 # partitions; recovery must create those mount points before fstab is read.
 
+# HarmonyOS HDC (Device Connector) bring-up; no-op without the hdcd bundle.
+import /init.recovery.hdc.rc
+
 on early-init
     # Matches init.Kirin9010.cfg pre-init PATH.
     export PATH /usr/local/bin:/bin:/usr/bin:/system/bin:/vendor/bin

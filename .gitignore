@@ -9,6 +9,10 @@ vendor_blobs/
 prebuilt/kernel
 prebuilt/dtb.img
 prebuilt/*.img
+prebuilt/hdc/
+prebuilt/hdc.manifest
+# Generated from the bundle manifest; references prebuilt/ files.
+harmony/hdc/hdc-prebuilt.mk
 partitions.txt
 
 # Editor / OS

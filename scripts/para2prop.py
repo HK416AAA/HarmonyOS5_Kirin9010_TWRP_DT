@@ -53,6 +53,8 @@ TWRP_RUNTIME = {
     "ro.sf.lcd_density": "320",
     "ro.usb.vid": "0x12D1",
     "ro.usb.pid": "0x5000",
+    # HarmonyOS HDC (Device Connector) transport: hdc | dual | adb.
+    "ro.recovery.usb.mode": "hdc",
 }
 
 HEADER = """\

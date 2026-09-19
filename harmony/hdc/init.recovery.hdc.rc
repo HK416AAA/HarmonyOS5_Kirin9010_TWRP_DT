@@ -1,0 +1,19 @@
+# init.recovery.hdc.rc - HarmonyOS HDC (Device Connector) recovery init.
+#
+# Imported from init.recovery.kirin9010.rc. Starts the USB gadget + hdcd
+# bring-up script once the filesystem is ready. hdc-usb.sh is a no-op when the
+# hdcd runtime bundle is absent, so this is harmless on a build without HDC.
+#
+# The gadget descriptors and FunctionFS layout mirror the official
+# reference/init.Kirin9010.usb.cfg (ffs.hdc, idVendor 0x12D1, idProduct 0x5000).
+
+service hdc-usb /sbin/sh /sbin/hdc-usb.sh
+    class late_start
+    user root
+    group root shell
+    oneshot
+    disabled
+
+on boot
+    # hdc-usb.sh checks ro.recovery.usb.mode (hdc|dual) and the bundle presence.
+    start hdc-usb

@@ -36,3 +36,4 @@ ro.allow.mock.location=0
 ro.sf.lcd_density=320
 ro.usb.vid=0x12D1
 ro.usb.pid=0x5000
+ro.recovery.usb.mode=hdc

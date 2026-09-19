@@ -56,7 +56,16 @@ if [ -f "${HERE}/harmony/param/ohos.para" ]; then
         -o "${HERE}/harmony/prop.default"
 fi
 
-# 3. Make sure the recovery fstab/overlay files are where device.mk expects.
+# 3. Bundle the hdcd (musl) runtime when a stock image is provided. Optional:
+#    without it the build still succeeds and HDC does not start.
+if [ -n "${HDC_SOURCE:-}" ]; then
+    echo ">>> bundling hdcd runtime from ${HDC_SOURCE}"
+    "${HERE}/scripts/bundle-hdc.sh"
+else
+    echo ">>> HDC_SOURCE not set: building without the hdcd runtime"
+fi
+
+# 4. Make sure the recovery fstab/overlay files are where device.mk expects.
 REQUIRED=(
     "BoardConfig.mk"
     "device.mk"
@@ -67,6 +76,10 @@ REQUIRED=(
     "harmony/prop.default"
     "harmony/param/ohos.para"
     "harmony/param/ohos.para.dac"
+    "harmony/param/hdc.para"
+    "harmony/param/hdc.para.dac"
+    "harmony/hdc/init.recovery.hdc.rc"
+    "harmony/hdc/hdc-usb.sh"
     "harmony/init.recovery.harmony.rc"
     "harmony/ueventd.harmony.rc"
 )
@@ -78,7 +91,7 @@ for f in "${REQUIRED[@]}"; do
 done
 echo ">>> device tree validated"
 
-# 4. Apply optional core patches (only if the patches/ dir has any).
+# 5. Apply optional core patches (only if the patches/ dir has any).
 shopt -s nullglob
 for p in "${HERE}"/patches/*.patch; do
     echo ">>> applying core patch: $(basename "$p")"
@@ -89,7 +102,7 @@ for p in "${HERE}"/patches/*.patch; do
 done
 shopt -u nullglob
 
-# 5. Report the HarmonyOS adaptation summary for the CI log.
+# 6. Report the HarmonyOS adaptation summary for the CI log.
 cat <<'EOF'
 >>> HarmonyOS adaptation active:
       - kernel-less ramdisk  : TARGET_NO_KERNEL := true
@@ -97,6 +110,7 @@ cat <<'EOF'
       - fstab                : HarmonyOS by-name partition names
       - harmony params       : param/ohos.para (+ .dac) as source of truth
       - compat overlay       : prop.default (derived) + init.recovery.harmony.rc
+      - HDC (Device Connector): ffs.hdc gadget + hdcd musl runtime (/ohos-hdc)
       - crypto               : disabled (Huawei FBE unsupported)
       - post-build           : scripts/make-recovery-ramdisk.py
 EOF
