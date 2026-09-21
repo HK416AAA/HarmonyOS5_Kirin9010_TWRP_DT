@@ -32,21 +32,27 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/harmony/param/ohos.startup.para:recovery/root/system/etc/param/ohos.startup.para \
     $(LOCAL_PATH)/harmony/param/hilog.para:recovery/root/system/etc/param/hilog.para \
     $(LOCAL_PATH)/harmony/param/hilog.para.dac:recovery/root/system/etc/param/hilog.para.dac \
-    $(LOCAL_PATH)/harmony/init.recovery.harmony.rc:recovery/root/system/etc/init/harmony.rc \
-    $(LOCAL_PATH)/harmony/ueventd.harmony.rc:recovery/root/system/etc/init/ueventd.harmony.rc
+    $(LOCAL_PATH)/harmony/ueventd.config:recovery/root/system/etc/ueventd.config
+
+# HarmonyOS init config is the source of truth; the Android rc TWRP actually
+# loads is generated from it by scripts/cfg2rc.py. See init.recovery.kirin9010.rc.
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/harmony/generated/init.recovery.harmony.rc:recovery/root/init.recovery.harmony.rc
 
 # HarmonyOS HDC (Device Connector). hdcd is a musl/OHOS binary, so the runtime
 # bundled by scripts/bundle-hdc.sh is installed under /ohos-hdc by the generated
 # fragment below and run through the bundled loader (see harmony/hdc/README.md).
 # Without the bundle the build still succeeds and HDC simply does not start.
-# init.recovery.hdc.rc is imported from init.recovery.kirin9010.rc; it is also
-# installed under the ro.hardware name so it loads whichever name init imports.
+# init.recovery.hdc.rc is imported from init.recovery.kirin9010.rc.
+# The recovery init rc is installed under both ro.hardware names: init imports
+# `/init.recovery.${ro.hardware}.rc` and the property may be kirin or kirin9010.
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/harmony/param/hdc.para:recovery/root/system/etc/param/hdc.para \
     $(LOCAL_PATH)/harmony/param/hdc.para.dac:recovery/root/system/etc/param/hdc.para.dac \
     $(LOCAL_PATH)/harmony/hdc/hdc-usb.sh:recovery/root/sbin/hdc-usb.sh \
     $(LOCAL_PATH)/harmony/hdc/init.recovery.hdc.rc:recovery/root/init.recovery.hdc.rc \
-    $(LOCAL_PATH)/init.recovery.kirin9010.rc:recovery/root/init.recovery.kirin.rc
+    $(LOCAL_PATH)/init.recovery.kirin9010.rc:recovery/root/init.recovery.kirin.rc \
+    $(LOCAL_PATH)/init.recovery.kirin9010.rc:recovery/root/init.recovery.kirin9010.rc
 
 -include $(LOCAL_PATH)/harmony/hdc/hdc-prebuilt.mk
 

@@ -188,8 +188,10 @@ rewrite of TWRP:
 
 1. **Device tree** - HarmonyOS partition names, fstab, kernel-less build.
 2. **Compatibility overlay** (`harmony/`) - the Android properties and init
-   nodes TWRP expects but HarmonyOS does not provide (`prop.default`,
-   `init.recovery.harmony.rc`, `ueventd.harmony.rc`).
+   nodes TWRP expects but HarmonyOS does not provide: props are derived from
+   `param/ohos.para`, and the init nodes are translated from
+   `init.kirin9010.cfg` / `ohos.recovery.cfg` into
+   `generated/init.recovery.harmony.rc` by `scripts/cfg2rc.py`.
 3. **HDC** (`harmony/hdc/`) - the updater ships the HDC daemon (`bin/hdcd`),
    `etc/init.hdc.cfg` / `etc/init/hdcd.cfg` and `etc/param/hdc.para`, and the USB
    config exposes FunctionFS `ffs.hdc` (idProduct `0x5000`). `hdcd` is musl/OHOS,

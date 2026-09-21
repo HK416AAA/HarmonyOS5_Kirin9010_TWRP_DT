@@ -54,15 +54,16 @@ through the bundled loader on the official `ffs.hdc` gadget
 ├── device.mk / twrp_kirin9010.mk      product definition
 ├── AndroidProducts.mk / vendorsetup.sh
 ├── twrp.fstab / recovery.fstab        HarmonyOS partition mount tables
-├── init.recovery.kirin9010.rc         recovery init
+├── init.recovery.kirin9010.rc         recovery init entry point (imports only)
 ├── harmony/                           HarmonyOS compatibility overlay
 │   ├── param/ohos.para                HarmonyOS params (source of truth)
 │   ├── param/ohos.para.dac            HarmonyOS param permissions
 │   ├── prop.default                   generated reference (not installed)
 │   ├── prop-overrides.mk              generated props fragment (system+product)
-│   ├── ohos.recovery.cfg              OHOS-format init reference (unused)
-│   ├── init.recovery.harmony.rc
-│   ├── ueventd.harmony.rc
+│   ├── init.kirin9010.cfg             HarmonyOS init jobs (source of truth)
+│   ├── ohos.recovery.cfg              HarmonyOS recovery-mode jobs
+│   ├── generated/init.recovery.harmony.rc   generated Android init rc
+│   ├── ueventd.config                 HarmonyOS device node table
 │   ├── hdc/                           HDC support (gadget, hdcd, docs)
 │   │   ├── init.recovery.hdc.rc       USB gadget + hdcd bring-up
 │   │   ├── hdc-usb.sh
@@ -73,6 +74,7 @@ through the bundled loader on the official `ffs.hdc` gadget
 │   ├── apply-harmony-adaptation.sh    install tree + apply overlay/patches
 │   ├── build.sh                       lunch + mka + wrap ramdisk
 │   ├── para2prop.py                   derive props from ohos.para
+│   ├── cfg2rc.py                      translate OHOS init cfg to Android rc
 │   ├── bundle-hdc.sh                  extract the hdcd musl runtime
 │   ├── hdc_extract.py                 hdcd + library-closure extraction
 │   └── make-recovery-ramdisk.py       kernel-less header-v0 repack

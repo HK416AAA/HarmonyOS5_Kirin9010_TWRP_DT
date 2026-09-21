@@ -60,7 +60,18 @@ if [ -f "${HERE}/harmony/param/ohos.para" ]; then
         --mk "${HERE}/harmony/prop-overrides.mk"
 fi
 
-# 3. Bundle the hdcd (musl) runtime when a stock image is provided. Optional:
+# 3. Translate the HarmonyOS init config into the Android rc TWRP loads. The
+#    .cfg files are the source of truth (see scripts/cfg2rc.py); the generated rc
+#    is committed so the tree stays self-contained, and regenerated here so CI
+#    always builds from the current config.
+mkdir -p "${HERE}/harmony/generated"
+echo ">>> generating harmony/generated/init.recovery.harmony.rc from OHOS init cfg"
+python3 "${HERE}/scripts/cfg2rc.py" \
+    "${HERE}/harmony/init.kirin9010.cfg" \
+    "${HERE}/harmony/ohos.recovery.cfg" \
+    --out "${HERE}/harmony/generated/init.recovery.harmony.rc"
+
+# 4. Bundle the hdcd (musl) runtime when a stock image is provided. Optional:
 #    without it the build still succeeds and HDC does not start.
 if [ -n "${HDC_SOURCE:-}" ]; then
     echo ">>> bundling hdcd runtime from ${HDC_SOURCE}"
@@ -69,7 +80,27 @@ else
     echo ">>> HDC_SOURCE not set: building without the hdcd runtime"
 fi
 
-# 4. Make sure the recovery fstab/overlay files are where device.mk expects.
+# 5. If the device tree was copied rather than symlinked, the generation above
+#    landed in the checkout and not in the copy the build actually reads. Sync
+#    the generated files across so the build never sees a stale config.
+if [ "${DEVICE_DIR}" != "${HERE}" ]; then
+    echo ">>> syncing generated files into ${DEVICE_DIR}"
+    cp -a "${HERE}/harmony/prop.default" "${DEVICE_DIR}/harmony/prop.default"
+    cp -a "${HERE}/harmony/prop-overrides.mk" "${DEVICE_DIR}/harmony/prop-overrides.mk"
+    cp -a "${HERE}/harmony/generated" "${DEVICE_DIR}/harmony/"
+    if [ -f "${HERE}/harmony/hdc/hdc-prebuilt.mk" ]; then
+        cp -a "${HERE}/harmony/hdc/hdc-prebuilt.mk" "${DEVICE_DIR}/harmony/hdc/hdc-prebuilt.mk"
+    fi
+    if [ -d "${HERE}/prebuilt/hdc" ]; then
+        mkdir -p "${DEVICE_DIR}/prebuilt"
+        cp -a "${HERE}/prebuilt/hdc" "${DEVICE_DIR}/prebuilt/"
+        if [ -f "${HERE}/prebuilt/hdc.manifest" ]; then
+            cp -a "${HERE}/prebuilt/hdc.manifest" "${DEVICE_DIR}/prebuilt/hdc.manifest"
+        fi
+    fi
+fi
+
+# 6. Make sure the recovery fstab/overlay files are where device.mk expects.
 REQUIRED=(
     "BoardConfig.mk"
     "device.mk"
@@ -88,8 +119,10 @@ REQUIRED=(
     "harmony/param/hdc.para.dac"
     "harmony/hdc/init.recovery.hdc.rc"
     "harmony/hdc/hdc-usb.sh"
-    "harmony/init.recovery.harmony.rc"
-    "harmony/ueventd.harmony.rc"
+    "harmony/init.kirin9010.cfg"
+    "harmony/ohos.recovery.cfg"
+    "harmony/ueventd.config"
+    "harmony/generated/init.recovery.harmony.rc"
 )
 for f in "${REQUIRED[@]}"; do
     if [ ! -e "${DEVICE_DIR}/${f}" ]; then
@@ -99,7 +132,7 @@ for f in "${REQUIRED[@]}"; do
 done
 echo ">>> device tree validated"
 
-# 5. Apply optional core patches (only if the patches/ dir has any).
+# 7. Apply optional core patches (only if the patches/ dir has any).
 shopt -s nullglob
 for p in "${HERE}"/patches/*.patch; do
     echo ">>> applying core patch: $(basename "$p")"
@@ -110,14 +143,16 @@ for p in "${HERE}"/patches/*.patch; do
 done
 shopt -u nullglob
 
-# 6. Report the HarmonyOS adaptation summary for the CI log.
+# 8. Report the HarmonyOS adaptation summary for the CI log.
 cat <<'EOF'
 >>> HarmonyOS adaptation active:
       - kernel-less ramdisk  : TARGET_NO_KERNEL := true
       - boot header geometry : v0, kernel_size=0, ramdisk@0x100000
       - fstab                : HarmonyOS by-name partition names
       - harmony params       : param/ohos.para (+ .dac) as source of truth
-      - compat overlay       : prop-overrides.mk (derived) + init.recovery.harmony.rc
+      - init config          : init.kirin9010.cfg -> generated/init.recovery.harmony.rc
+      - device nodes         : ueventd.config at /system/etc (OHOS-native)
+      - compat overlay       : prop-overrides.mk (derived) + thin init rc
       - HDC (Device Connector): ffs.hdc gadget + hdcd musl runtime (/ohos-hdc)
       - crypto               : disabled (Huawei FBE unsupported)
       - post-build           : scripts/make-recovery-ramdisk.py

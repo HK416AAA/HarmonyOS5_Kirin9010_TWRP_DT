@@ -67,11 +67,15 @@ TARGET_USERIMAGES_USE_EROFS := true
 TW_INCLUDE_EROFS := true
 BOARD_USES_FULL_RECOVERY_IMAGE := true
 
-# HarmonyOS split-boot: output is already a kernel-less ramdisk image and is
-# flashed straight to recovery_ramdisk with no repacking.
-BOARD_USES_HUAWEI_SPLIT_RAMDISK := true
-BOARD_RECOVERY_RAMDISK_PARTITION := recovery_ramdisk
-BOARD_RECOVERY_VENDOR_PARTITION := recovery_vendor
+# HarmonyOS split-boot is expressed with the standard AOSP knobs above:
+# TARGET_NO_KERNEL makes the build emit a kernel-less header-v0 image, which is
+# flashed straight to the recovery_ramdisk partition with no repacking. There is
+# no BOARD_USES_HUAWEI_SPLIT_RAMDISK / BOARD_RECOVERY_*_PARTITION variable:
+# AOSP and TWRP do not consume them, so setting them would only be misleading.
+# The USB gadget is configfs-based on this kernel (see
+# harmony/init.kirin9010.cfg), so TWRP's legacy android_usb init is excluded and
+# init.rc's configfs path is selected through sys.usb.configfs.
+TW_EXCLUDE_DEFAULT_USB_INIT := true
 
 # TWRP configuration
 TW_THEME := portrait_hdpi
@@ -81,7 +85,6 @@ TW_SCREEN_BLANK_ON_BOOT := true
 TW_USE_TOOLBOX := true
 TW_INCLUDE_REPACKTOOLS := true
 TW_INCLUDE_RESETPROP := true
-TW_EXCLUDE_DEFAULT_USB_INIT := true
 TW_CUSTOM_CPU_TEMP_PATH := "/sys/class/thermal/thermal_zone0/temp"
 
 # Storage
